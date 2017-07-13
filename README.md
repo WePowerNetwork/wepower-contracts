@@ -1,3 +1,3 @@
-# aigang-contracts
+# wepower-contracts
 
-Aigang Ethereum smart contracts
+WePower Ethereum smart contracts
