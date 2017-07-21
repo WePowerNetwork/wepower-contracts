@@ -2,16 +2,18 @@ pragma solidity ^0.4.11;
 
 import "./SafeMath.sol";
 import "./MiniMeToken.sol";
+import "./ERC20.sol";
 
 contract PreSale is Controlled, TokenController {
   using SafeMath for uint256;
 
-  uint256 constant public exchangeRate = 1; // ETH-WIT exchange rate
+  uint256 constant public exchangeRate = 1; // ETH-WCT exchange rate
   uint256 constant public investor_bonus = 25;
 
-  MiniMeToken public wit;
+  MiniMeToken public wct;
+  address public preSaleWallet;
 
-  uint256 public totalSupplyCap;            // Total WIT supply to be generated
+  uint256 public totalSupplyCap;            // Total WCT supply to be generated
   uint256 public totalSold;                 // How much tokens have been sold
 
   uint256 public minimum_investment;
@@ -42,11 +44,13 @@ contract PreSale is Controlled, TokenController {
     _;
   }
 
-  function PreSale(address _wit) {
-    wit = MiniMeToken(_wit);
+  function PreSale(address _wct) {
+    require(_wct != 0x0);
+    wct = MiniMeToken(_wct);
   }
 
   function initialize(
+      address _preSaleWallet,
       uint256 _totalSupplyCap,
       uint256 _minimum_investment,
       uint256 _startBlock,
@@ -55,9 +59,12 @@ contract PreSale is Controlled, TokenController {
     // Initialize only once
     require(initializedBlock == 0);
 
-    assert(wit.totalSupply() == 0);
-    assert(wit.controller() == address(this));
-    assert(wit.decimals() == 18);  // Same amount of decimals as ETH
+    assert(wct.totalSupply() == 0);
+    assert(wct.controller() == address(this));
+    assert(wct.decimals() == 18);  // Same amount of decimals as ETH
+
+    require(_preSaleWallet != 0x0);
+    preSaleWallet = _preSaleWallet;
 
     assert(_startBlock >= getBlockNumber());
     require(_startBlock < _endBlock);
@@ -74,7 +81,7 @@ contract PreSale is Controlled, TokenController {
   }
 
   /// @notice If anybody sends Ether directly to this contract, consider he is
-  /// getting WITs.
+  /// getting WCTs.
   function () public payable notPaused {
     proxyPayment(msg.sender);
   }
@@ -83,10 +90,10 @@ contract PreSale is Controlled, TokenController {
   // TokenController functions
   //////////
 
-  /// @notice This method will generally be called by the WIT token contract to
-  ///  acquire WITs. Or directly from third parties that want to acquire WITs in
+  /// @notice This method will generally be called by the WCT token contract to
+  ///  acquire WCTs. Or directly from third parties that want to acquire WCTs in
   ///  behalf of a token holder.
-  /// @param _th WIT holder where the WITs will be minted.
+  /// @param _th WCT holder where the WCTs will be minted.
   function proxyPayment(address _th) public payable notPaused initialized contributionOpen returns (bool) {
     require(_th != 0x0);
     doBuy(_th);
@@ -106,7 +113,7 @@ contract PreSale is Controlled, TokenController {
 
     // Antispam mechanism
     address caller;
-    if (msg.sender == address(wit)) {
+    if (msg.sender == address(wct)) {
       caller = _th;
     } else {
       caller = msg.sender;
@@ -125,9 +132,10 @@ contract PreSale is Controlled, TokenController {
           toFund = leftForSale.div(exchangeRate);
         }
 
-        assert(wit.generateTokens(_th, tokensGenerated));
+        assert(wct.generateTokens(_th, tokensGenerated));
         totalSold = totalSold.add(tokensGenerated);
 
+        preSaleWallet.transfer(toFund);
         NewSale(_th, toFund, tokensGenerated);
       } else {
         toFund = 0;
@@ -194,12 +202,16 @@ contract PreSale is Controlled, TokenController {
   /// @param _token The address of the token contract that you want to recover
   ///  set to 0 in case you want to extract ether.
   function claimTokens(address _token) public onlyController {
+    if (wct.controller() == address(this)) {
+      wct.claimTokens(_token);
+    }
+
     if (_token == 0x0) {
       controller.transfer(this.balance);
       return;
     }
 
-    MiniMeToken token = MiniMeToken(_token);
+    ERC20 token = ERC20(_token);
     uint256 balance = token.balanceOf(this);
     token.transfer(controller, balance);
     ClaimedTokens(_token, controller, balance);
@@ -212,6 +224,13 @@ contract PreSale is Controlled, TokenController {
 
   function allowTransfers(bool _transferable) onlyController {
     transferable = _transferable;
+  }
+
+  /// @notice The owner of this contract can change the controller of the WCT token
+  ///  Please, be sure that the owner is a trusted agent or 0x0 address.
+  /// @param _newController The address of the new controller
+  function changeWCTController(address _newController) public onlyController {
+    wct.changeController(_newController);
   }
 
   event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);

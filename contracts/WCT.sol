@@ -5,24 +5,24 @@ import "./MiniMeToken.sol";
 
 
 /**
- * @title WePowerToken
+ * @title WePower Contribution Token
  *
  * @dev Simple ERC20 Token, with pre-sale logic
  * @dev IMPORTANT NOTE: do not use or deploy this contract as-is. It needs some changes to be
  * production ready.
  */
-contract WIT is MiniMeToken {
+contract WCT is MiniMeToken {
   /**
     * @dev Constructor
   */
-  function WIT(address _tokenFactory)
+  function WCT(address _tokenFactory)
     MiniMeToken(
       _tokenFactory,
       0x0,                     // no parent token
       0,                       // no snapshot block number from parent
-      "WePower Investor Token", // Token name
+      "WePower Contribution Token", // Token name
       18,                      // Decimals
-      "WIT",                   // Symbol
+      "WCT",                   // Symbol
       true                     // Enable transfers
     ) {}
 }
