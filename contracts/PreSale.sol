@@ -169,6 +169,7 @@ contract PreSale is Controlled, TokenController {
     assert(getBlockNumber() >= startBlock);
     assert(msg.sender == controller || getBlockNumber() > endBlock || tokensForSale() == 0);
 
+    wct.changeController(0x0);
     finalizedBlock = getBlockNumber();
 
     Finalized(finalizedBlock);
@@ -224,13 +225,6 @@ contract PreSale is Controlled, TokenController {
 
   function allowTransfers(bool _transferable) onlyController {
     transferable = _transferable;
-  }
-
-  /// @notice The owner of this contract can change the controller of the WCT token
-  ///  Please, be sure that the owner is a trusted agent or 0x0 address.
-  /// @param _newController The address of the new controller
-  function changeWCTController(address _newController) public onlyController {
-    wct.changeController(_newController);
   }
 
   event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
