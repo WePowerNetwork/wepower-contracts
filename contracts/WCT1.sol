@@ -20,7 +20,7 @@ contract WCT1 is MiniMeToken {
       _tokenFactory,
       0x0,                     // no parent token
       0,                       // no snapshot block number from parent
-      "WePower Contribution Token", // Token name
+      "WePower Contribution Token 1", // Token name
       18,                      // Decimals
       "WCT1",                   // Symbol
       true                     // Enable transfers
