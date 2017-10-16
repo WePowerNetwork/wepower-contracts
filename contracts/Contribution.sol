@@ -7,7 +7,6 @@ contract Contribution is Ownable {
   using SafeMath for uint256;
 
   WPR public wpr;
-  bool public transferable;
   address public contributionWallet;
   address public futureHolder;
   address public devHolder;
@@ -59,6 +58,7 @@ contract Contribution is Ownable {
   function initialize(
       address _wct,
       address _wct1,
+      address _wct2,
       address _exchanger,
       address _contributionWallet,
       address _futureHolder,
@@ -107,8 +107,14 @@ contract Contribution is Ownable {
       MiniMeToken(_wct1).totalSupplyAt(initializedBlock)
     );
 
-    // Exchangerate from wct to wpr 2500 considering 25% bonus.
-    require(wpr.mint(_exchanger, weiPreCollected.mul(2500)));
+    if (_wct2 != 0x0) {
+      weiPreCollected = weiPreCollected.add(
+        MiniMeToken(_wct2).totalSupplyAt(initializedBlock)
+      );
+    }
+
+    // Exchange rate from wct to wpr 1250 considering 25% bonus.
+    require(wpr.mint(_exchanger, weiPreCollected.mul(1250)));
 
     Initialized(initializedBlock);
   }
@@ -151,7 +157,7 @@ contract Contribution is Ownable {
       // 10% Bonus
       rate = 2200;
     } else {
-      rate = 2000;
+      rate = 1000;
     }
   }
 
@@ -177,18 +183,6 @@ contract Contribution is Ownable {
     require(_th != 0x0);
     doBuy(_th);
     return true;
-  }
-
-  function onTransfer(address, address, uint256) public returns (bool) {
-    return transferable;
-  }
-
-  function onApprove(address, address, uint256) public returns (bool) {
-    return transferable;
-  }
-
-  function allowTransfers(bool _transferable) onlyOwner {
-    transferable = _transferable;
   }
 
   function doBuy(address _th) internal {
