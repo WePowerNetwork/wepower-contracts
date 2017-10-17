@@ -15,6 +15,7 @@ contract Contribution is Ownable {
   uint256 public totalWeiCap;             // Total Wei to be collected
   uint256 public totalWeiCollected;       // How much Wei has been collected
   uint256 public weiPreCollected;
+  uint256 public bonusCap;
 
   uint256 public minimumPerTransaction = 0.01 ether;
 
@@ -64,6 +65,7 @@ contract Contribution is Ownable {
       address _futureHolder,
       address _teamHolder,
       address _communityHolder,
+      uint256 _bonusCap,
       uint256 _totalWeiCap,
       uint256 _startTime,
       uint256 _endTime
@@ -116,6 +118,8 @@ contract Contribution is Ownable {
     // Exchange rate from wct to wpr 1250 considering 25% bonus.
     require(wpr.mint(_exchanger, weiPreCollected.mul(1250)));
 
+    bonusCap = _bonusCap;
+
     Initialized(initializedBlock);
   }
 
@@ -148,21 +152,22 @@ contract Contribution is Ownable {
   }
 
   // ETH-WPR exchange rate
-  function exchangeRate() constant public initialized returns (uint256 rate) {
-
-    if (getBlockTimestamp() <= startTime + 1 hours) {
-      // 15% Bonus
-      rate = 2300;
-    } else if (getBlockTimestamp() <= startTime + 2 hours) {
-      // 10% Bonus
-      rate = 2200;
-    } else {
-      rate = 1000;
-    }
+  function exchangeRate() constant public initialized returns (uint256) {
+    return 1000;
   }
 
-  function tokensToGenerate(uint256 toFund) internal returns (uint256) {
-    return toFund.mul(exchangeRate());
+  function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {
+    if (totalWeiCollected < bonusCap) {
+      uint256 withBonus = bonusCap.sub(totalWeiCollected);
+      if (withBonus > toFund) {
+        withBonus = toFund;
+      }
+      // 15% bonus to each ETH under the generatedTokens
+      generatedTokens = withBonus.mul(exchangeRate()).mul(15).div(100);
+      toFund = toFund.sub(withBonus);
+    }
+
+    generatedTokens = generatedTokens.add(toFund.mul(exchangeRate()));
   }
 
   /// @notice If anybody sends Ether directly to this contract, consider he is
