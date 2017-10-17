@@ -8,9 +8,9 @@ contract Contribution is Ownable {
 
   WPR public wpr;
   address public contributionWallet;
-  address public futureHolder;
-  address public devHolder;
+  address public teamHolder;
   address public communityHolder;
+  address public futureHolder;
 
   uint256 public totalWeiCap;             // Total Wei to be collected
   uint256 public totalWeiCollected;       // How much Wei has been collected
@@ -62,7 +62,7 @@ contract Contribution is Ownable {
       address _exchanger,
       address _contributionWallet,
       address _futureHolder,
-      address _devHolder,
+      address _teamHolder,
       address _communityHolder,
       uint256 _totalWeiCap,
       uint256 _startTime,
@@ -81,8 +81,8 @@ contract Contribution is Ownable {
     require(_futureHolder != 0x0);
     futureHolder = _futureHolder;
 
-    require(_devHolder != 0x0);
-    devHolder = _devHolder;
+    require(_teamHolder != 0x0);
+    teamHolder = _teamHolder;
 
     require(_communityHolder != 0x0);
     communityHolder = _communityHolder;
@@ -241,9 +241,9 @@ contract Contribution is Ownable {
 
     // WPR generated so far is 51% of total
     uint256 tokenCap = wpr.totalSupply().mul(100).div(55);
-    // dev Wallet will have 20% of the total Tokens and will be able to retrieve
-    // after a year.
-    wpr.mint(devHolder, tokenCap.mul(20).div(100));
+    // team Wallet will have 20% of the total Tokens and will be in a 12 months
+    // vesting contract with 6 months cliff.
+    wpr.mint(teamHolder, tokenCap.mul(20).div(100));
     // community Wallet will have access to 10% of the total Tokens.
     wpr.mint(communityHolder, tokenCap.mul(10).div(100));
     // future Wallet will have 20% of the total Tokens and will be able to retrieve

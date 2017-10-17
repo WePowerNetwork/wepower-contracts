@@ -2,14 +2,14 @@ pragma solidity ^0.4.15;
 
 import "./Contribution.sol";
 
-contract CommunityTokenHolder is Ownable {
+contract TeamTokenHolder is Ownable {
   using SafeMath for uint256;
 
   Contribution contribution;
   ERC20 wrp;
   uint256 public collectedTokens;
 
-  function RemainderTokenHolder(address _owner, address _contribution, address _wrp) {
+  function TeamTokenHolder(address _owner, address _contribution, address _wrp) {
     owner = _owner;
     contribution = Contribution(_contribution);
     wrp = ERC20(_wrp);
