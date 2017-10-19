@@ -6,8 +6,8 @@ import "zeppelin-solidity/contracts/token/MintableToken.sol";
  * @title WePower Contribution Token
  */
 contract WPR is MintableToken {
-  string constant public name = "ExampleToken";
-  string constant public symbol = "EGT";
+  string constant public name = "WePower Token";
+  string constant public symbol = "WPR";
   uint constant public decimals = 18;
 
   function WPR() {
