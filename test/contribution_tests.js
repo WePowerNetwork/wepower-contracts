@@ -85,9 +85,6 @@ contract("Contribution", ([miner, owner, investor]) => {
 
       await contribution.setBlockTimestamp(currentTime);
       await contribution.setBlockNumber(latestBlockNumber);
-    });
-
-    it("happy path", async function() {
       await wpr.transferOwnership(contribution.address);
 
       await contribution.initialize(
@@ -104,7 +101,9 @@ contract("Contribution", ([miner, owner, investor]) => {
         currentTime + 1,
         currentTime + 10
       );
+    });
 
+    it("Values after initialization are ok", async function() {
       //public values
       const contributionWallet = await contribution.contributionWallet();
       const totalSupplyCap = await contribution.totalWeiCap();

@@ -22,7 +22,7 @@ contract TeamTokenHolder is Ownable {
 
     uint256 finalizedTime = contribution.finalizedTime();
 
-    require(finalizedTime > 0 && getTime() > finalizedTime.add(months(6)));
+    require(finalizedTime > 0 && getTime() >= finalizedTime.add(months(6)));
 
     uint256 canExtract = total.mul(getTime().sub(finalizedTime)).div(months(12));
 

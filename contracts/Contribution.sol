@@ -222,18 +222,6 @@ contract Contribution is Ownable {
     }
   }
 
-  /// @dev Internal function to determine if an address is a contract
-  /// @param _addr The address being queried
-  /// @return True if `_addr` is a contract
-  function isContract(address _addr) constant internal returns (bool) {
-    if (_addr == 0) return false;
-    uint256 size;
-    assembly {
-      size := extcodesize(_addr)
-    }
-    return (size > 0);
-  }
-
   /// @notice This method will can be called by the controller before the contribution period
   ///  end or by anybody after the `endTime`. This method finalizes the contribution period
   ///  by creating the remaining tokens and transferring the controller to the configured
@@ -244,14 +232,14 @@ contract Contribution is Ownable {
     require(getBlockTimestamp() >= startTime);
     require(msg.sender == owner || getBlockTimestamp() > endTime || weiToCollect() == 0);
 
-    // WPR generated so far is 51% of total
+    // WPR generated so far is 55% of total
     uint256 tokenCap = wpr.totalSupply().mul(100).div(55);
     // team Wallet will have 20% of the total Tokens and will be in a 12 months
     // vesting contract with 6 months cliff.
     wpr.mint(teamHolder, tokenCap.mul(20).div(100));
     // community Wallet will have access to 10% of the total Tokens.
     wpr.mint(communityHolder, tokenCap.mul(10).div(100));
-    // future Wallet will have 20% of the total Tokens and will be able to retrieve
+    // future Wallet will have 15% of the total Tokens and will be able to retrieve
     // after a year.
     wpr.mint(futureHolder, tokenCap.mul(15).div(100));
 
