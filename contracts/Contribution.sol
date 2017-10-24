@@ -11,6 +11,7 @@ contract Contribution is Ownable {
   address public teamHolder;
   address public communityHolder;
   address public futureHolder;
+  address public exchanger;
 
   uint256 public totalWeiCap;             // Total Wei to be collected
   uint256 public totalWeiCollected;       // How much Wei has been collected
@@ -108,15 +109,13 @@ contract Contribution is Ownable {
     weiPreCollected = weiPreCollected.add(
       MiniMeToken(_wct1).totalSupplyAt(initializedBlock)
     );
-
-    if (_wct2 != 0x0) {
-      weiPreCollected = weiPreCollected.add(
-        MiniMeToken(_wct2).totalSupplyAt(initializedBlock)
-      );
-    }
+    weiPreCollected = weiPreCollected.add(
+      MiniMeToken(_wct2).totalSupplyAt(initializedBlock)
+    );
 
     // Exchange rate from wct to wpr 1250 considering 25% bonus.
     require(wpr.mint(_exchanger, weiPreCollected.mul(1250)));
+    exchanger = _exchanger;
 
     bonusCap = _bonusCap;
 
@@ -185,8 +184,11 @@ contract Contribution is Ownable {
   ///  behalf of a token holder.
   /// @param _th WPR holder where the WPRs will be minted.
   function proxyPayment(address _th) public payable notPaused initialized contributionOpen returns (bool) {
-    require(_th != 0x0);
-    doBuy(_th);
+    if (_th != 0x0) {
+      exchanger.collect(_th);
+    } else {
+      doBuy(_th);
+    }
     return true;
   }
 

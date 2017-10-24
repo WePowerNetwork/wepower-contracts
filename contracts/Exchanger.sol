@@ -45,43 +45,41 @@ contract Exchanger is Ownable {
     contribution = Contribution(_contribution);
   }
 
-  function () public {
-    collect();
-  }
-
   /// @notice This method should be called by the WCT holders to collect their
   ///  corresponding WPRs
-  function collect() public {
+  function collect(address caller) public {
     // WCT sholder could collect WPR right after contribution started
     assert(getBlockTimestamp() > contribution.startTime());
 
     uint256 pre_sale_fixed_at = contribution.initializedBlock();
 
     // Get current WPR ballance at contributions initialization-
-    uint256 balance = wct.balanceOfAt(msg.sender, pre_sale_fixed_at);
-    balance = balance.add(wct1.balanceOfAt(msg.sender, pre_sale_fixed_at));
-    if (address(wct2) != 0x0) {
-      balance = balance.add(wct2.balanceOfAt(msg.sender, pre_sale_fixed_at));
-    }
+    uint256 balance = wct.balanceOfAt(caller, pre_sale_fixed_at);
+    balance = balance.add(wct1.balanceOfAt(caller, pre_sale_fixed_at));
+    balance = balance.add(wct2.balanceOfAt(caller, pre_sale_fixed_at));
+
+    uint totalSupplied = wct.totalSupplyAt(pre_sale_fixed_at);
+    totalSupplied = totalSupplied.add(wct1.totalSupplyAt(pre_sale_fixed_at));
+    totalSupplied = totalSupplied.add(wct2.totalSupplyAt(pre_sale_fixed_at));
 
     // total of wpr to be distributed.
     uint256 total = totalCollected.add(wpr.balanceOf(address(this)));
 
     // First calculate how much correspond to him
-    uint256 amount = total.mul(balance).div(wct.totalSupplyAt(pre_sale_fixed_at));
+    uint256 amount = total.mul(balance).div(totalSupplied);
 
     // And then subtract the amount already collected
-    amount = amount.sub(collected[msg.sender]);
+    amount = amount.sub(collected[caller]);
 
     // Notify the user that there are no tokens to exchange
     require(amount > 0);
 
     totalCollected = totalCollected.add(amount);
-    collected[msg.sender] = collected[msg.sender].add(amount);
+    collected[caller] = collected[caller].add(amount);
 
-    assert(wpr.transfer(msg.sender, amount));
+    assert(wpr.transfer(caller, amount));
 
-    TokensCollected(msg.sender, amount);
+    TokensCollected(caller, amount);
   }
 
   //////////
