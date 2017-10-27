@@ -1,6 +1,7 @@
 pragma solidity ^0.4.15;
 
 import "./MiniMeToken.sol";
+import "./ExchangerI.sol";
 import "./WPR.sol";
 
 contract Contribution is Ownable {
@@ -185,7 +186,7 @@ contract Contribution is Ownable {
   /// @param _th WPR holder where the WPRs will be minted.
   function proxyPayment(address _th) public payable notPaused initialized contributionOpen returns (bool) {
     if (_th != 0x0) {
-      exchanger.collect(_th);
+      ExchangerI(exchanger).collect(_th);
     } else {
       doBuy(_th);
     }

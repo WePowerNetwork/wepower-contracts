@@ -25,8 +25,9 @@ pragma solidity ^0.4.15;
 ///  deposited and the tokens collected.
 
 import "./Contribution.sol";
+import "./ExchangerI.sol";
 
-contract Exchanger is Ownable {
+contract Exchanger is ExchangerI, Ownable {
   using SafeMath for uint256;
 
   mapping (address => uint256) public collected;
