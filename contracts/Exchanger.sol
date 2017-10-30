@@ -46,6 +46,10 @@ contract Exchanger is ExchangerI, Ownable {
     contribution = Contribution(_contribution);
   }
 
+  function () public {
+    collect(msg.sender);
+  }
+
   /// @notice This method should be called by the WCT holders to collect their
   ///  corresponding WPRs
   function collect(address caller) public {
