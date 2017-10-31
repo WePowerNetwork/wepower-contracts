@@ -5,9 +5,11 @@ import '../../contracts/FutureTokenHolder.sol';
 contract MockFutureTokenHolder is FutureTokenHolder {
   uint256 public timeStamp;
 
-  function MockFutureTokenHolder(address _controller, address _contribution, address _wpr)
-    FutureTokenHolder(_controller, _contribution, _wpr)
-  {
+  function MockFutureTokenHolder(
+      address _controller,
+      address _contribution,
+      address _wpr
+  ) FutureTokenHolder(_controller, _contribution, _wpr) {
     timeStamp = now;
   }
 

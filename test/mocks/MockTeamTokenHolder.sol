@@ -5,9 +5,11 @@ import '../../contracts/TeamTokenHolder.sol';
 contract MockTeamTokenHolder is TeamTokenHolder {
   uint256 public timeStamp;
 
-  function MockTeamTokenHolder(address _controller, address _contribution, address _wpr)
-    TeamTokenHolder(_controller, _contribution, _wpr)
-  {
+  function MockTeamTokenHolder(
+      address _controller,
+      address _contribution,
+      address _wpr
+  ) TeamTokenHolder(_controller, _contribution, _wpr) {
     timeStamp = now;
   }
 
