@@ -6,7 +6,7 @@ const WCT2 = artifacts.require("WCT2.sol");
 const TeamTokenHolder = artifacts.require("TeamTokenHolder.sol");
 const FutureTokenHolder = artifacts.require("FutureTokenHolder.sol");
 const MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
-const Exchanger = artifacts.require("Exchanger");
+const Exchanger = artifacts.require("MockExchanger");
 const assert = require("chai").assert;
 const BigNumber = web3.BigNumber;
 import { expectThrow, duration, latestBlock, getTime } from "./utils.js";
@@ -27,18 +27,6 @@ contract("Contribution", ([miner, owner, investor]) => {
   let teamHolder;
   let _communityHolder;
   let latestBlockNumber;
-  let addresses = [
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501200",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501201",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501202",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501203",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501204",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501205",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501206",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501207",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501208",
-    "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501209"
-  ];
 
   it("#constructor accepts Token address", async function() {
     const contribution = await MockContribution.new(
@@ -58,6 +46,7 @@ contract("Contribution", ([miner, owner, investor]) => {
       wct = await WCT.new(tokenFactory.address);
       wct1 = await WCT1.new(tokenFactory.address);
       wct2 = await WCT2.new(tokenFactory.address);
+      await wct.generateTokens(owner, tokensPreSold);
       wpr = await WPR.new();
       contribution = await MockContribution.new(wpr.address);
       exchanger = await Exchanger.new(
@@ -90,6 +79,7 @@ contract("Contribution", ([miner, owner, investor]) => {
       await contribution.setBlockNumber(latestBlockNumber);
       await wpr.transferOwnership(contribution.address);
 
+      await contribution.whitelist(miner);
       await contribution.initialize(
         wct.address,
         wct1.address,
@@ -125,11 +115,14 @@ contract("Contribution", ([miner, owner, investor]) => {
       const exchangerBalance = await wpr.balanceOf(exchanger.address);
       const wctSupplyAt = await wct.totalSupplyAt(latestBlockNumber);
       const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
+      const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
+
       assert.equal(
         exchangerBalance.toString(10),
         wctSupplyAt
           .add(wct1SupplyAt)
-          .mul(1.15)
+          .add(wct2SupplyAt)
+          .mul(1250)
           .toString(10)
       );
 
@@ -144,6 +137,44 @@ contract("Contribution", ([miner, owner, investor]) => {
       assert.equal(finalizedBlock.toNumber(), 0);
       assert.equal(paused, false);
       assert.equal(minimumPerTransaction.toString(), web3.toWei(0.01, "ether"));
+    });
+
+    it("Testing empty transaction to contribution and Purchase", async function() {
+      const wctSupplyAt = await wct.totalSupplyAt(latestBlockNumber);
+      const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
+      const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
+      const wprInExchanger = wctSupplyAt
+        .add(wct1SupplyAt)
+        .add(wct2SupplyAt)
+        .mul(1250);
+      const exchangerBalance = await wpr.balanceOf(exchanger.address);
+      assert.equal(exchangerBalance.toNumber(), wprInExchanger.toNumber());
+      let ownerBalance = await wpr.balanceOf(owner);
+      assert.equal(ownerBalance.toNumber(), 0);
+      await contribution.setBlockTimestamp(currentTime + 2);
+      await exchanger.setBlockTimestamp(currentTime + 2);
+      await contribution.sendTransaction({ from: owner });
+      ownerBalance = await wpr.balanceOf(owner);
+      assert.equal(ownerBalance.toNumber(), wprInExchanger.toNumber());
+
+      await contribution.sendTransaction({
+        from: miner,
+        value: new BigNumber(10 ** 18)
+      });
+
+      let minerBalance = await wpr.balanceOf(miner);
+      assert.equal(minerBalance.toNumber(), 1150 * 10 ** 18);
+
+      await contribution.sendTransaction({
+        from: miner,
+        value: new BigNumber(100 * 10 ** 18)
+      });
+
+      minerBalance = await wpr.balanceOf(miner);
+      assert.equal(
+        minerBalance.toNumber(),
+        new BigNumber(1150 * 100 * 10 ** 18).add(1000 * 10 ** 18).toNumber() // 100 eth with bonus 1 eth without bonus
+      );
     });
   });
 });

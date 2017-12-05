@@ -91,7 +91,7 @@ contract(
         );
         currentTime = getTime();
         latestBlockNumber = await latestBlock();
-        await contribution.setBlockTimestamp(currentTime + 1);
+        await contribution.setBlockTimestamp(currentTime + 2);
         await contribution.setBlockNumber(latestBlockNumber + 1);
       });
 

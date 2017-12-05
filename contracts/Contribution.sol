@@ -163,7 +163,7 @@ contract Contribution is Ownable {
         withBonus = toFund;
       }
       // 15% bonus to each ETH under the generatedTokens
-      generatedTokens = withBonus.mul(exchangeRate()).mul(15).div(100);
+      generatedTokens = withBonus.mul(exchangeRate()).mul(115).div(100);
       toFund = toFund.sub(withBonus);
     }
 
@@ -185,7 +185,8 @@ contract Contribution is Ownable {
   ///  behalf of a token holder.
   /// @param _th WPR holder where the WPRs will be minted.
   function proxyPayment(address _th) public payable notPaused initialized contributionOpen returns (bool) {
-    if (_th != 0x0) {
+    require(_th != 0x0);
+    if (msg.value == 0) {
       ExchangerI(exchanger).collect(_th);
     } else {
       doBuy(_th);
