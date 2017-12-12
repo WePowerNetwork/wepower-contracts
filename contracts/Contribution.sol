@@ -78,6 +78,7 @@ contract Contribution is Ownable {
     assert(wpr.totalSupply() == 0);
     assert(wpr.owner() == address(this));
     assert(wpr.decimals() == 18);  // Same amount of decimals as ETH
+    wpr.pause();
 
     require(_contributionWallet != 0x0);
     contributionWallet = _contributionWallet;
@@ -186,11 +187,13 @@ contract Contribution is Ownable {
   /// @param _th WPR holder where the WPRs will be minted.
   function proxyPayment(address _th) public payable notPaused initialized contributionOpen returns (bool) {
     require(_th != 0x0);
+    wpr.unpause();
     if (msg.value == 0) {
       ExchangerI(exchanger).collect(_th);
     } else {
       doBuy(_th);
     }
+    wpr.pause();
     return true;
   }
 
@@ -247,6 +250,7 @@ contract Contribution is Ownable {
     // after a year.
     wpr.mint(futureHolder, tokenCap.mul(15).div(100));
 
+    wpr.unpause();
     require(wpr.finishMinting());
 
     finalizedBlock = getBlockNumber();
