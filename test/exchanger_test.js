@@ -106,17 +106,6 @@ contract(
         assert.equal(ownerBalance.toNumber(), wprInExchanger.toNumber());
       });
 
-      it("()", async function() {
-        const exchangerBalance = await wpr.balanceOf(exchanger.address);
-        assert.equal(exchangerBalance.toNumber(), wprInExchanger.toNumber());
-        let ownerBalance = await wpr.balanceOf(owner);
-        assert.equal(ownerBalance.toNumber(), 0);
-        await exchanger.setBlockTimestamp(currentTime + 10);
-        await exchanger.sendTransaction({ from: owner });
-        ownerBalance = await wpr.balanceOf(owner);
-        assert.equal(ownerBalance.toNumber(), wprInExchanger.toNumber());
-      });
-
       it("() after contribution ends.", async function() {
         const exchangerBalance = await wpr.balanceOf(exchanger.address);
         assert.equal(exchangerBalance.toNumber(), wprInExchanger.toNumber());

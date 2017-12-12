@@ -55,4 +55,9 @@ contract WPR is MintableToken, Pausable {
   function decreaseApproval(address _spender, uint _subtractedValue) public whenNotPaused returns (bool success) {
     return super.decreaseApproval(_spender, _subtractedValue);
   }
+
+  function disown() {
+    OwnershipTransferred(owner, address(0));
+    owner = address(0);
+  }
 }

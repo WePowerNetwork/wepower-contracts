@@ -252,6 +252,7 @@ contract Contribution is Ownable {
 
     wpr.unpause();
     require(wpr.finishMinting());
+    wpr.transferOwnership(owner);
 
     finalizedBlock = getBlockNumber();
     finalizedTime = getBlockTimestamp();
