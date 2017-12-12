@@ -115,6 +115,7 @@ contract(
         await contribution.setBlockTimestamp(currentTime + 10);
 
         await contribution.finalize();
+        await wpr.unpause();
 
         await contribution.setBlockTimestamp(currentTime + 11);
         await exchanger.setBlockTimestamp(currentTime + 11);

@@ -250,7 +250,6 @@ contract Contribution is Ownable {
     // after a year.
     wpr.mint(futureHolder, tokenCap.mul(15).div(100));
 
-    wpr.unpause();
     require(wpr.finishMinting());
     wpr.transferOwnership(owner);
 

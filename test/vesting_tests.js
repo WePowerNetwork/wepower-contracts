@@ -111,6 +111,7 @@ contract("Vesting", ([miner, owner, investor]) => {
       await contribution.setBlockTimestamp(currentTime + 1);
       await contribution.setBlockNumber(latestBlockNumber + 1);
       await contribution.finalize();
+      await wpr.unpause();
     });
 
     it("Final Balances", async function() {

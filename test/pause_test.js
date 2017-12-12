@@ -97,14 +97,24 @@ contract("Pause", ([miner, owner, investor, investor2]) => {
     await expectThrow(wpr.transfer(owner, 10, { from: investor }));
   });
 
-  it("tokens should be unpaused once crowdsale is finalized", async function() {
+  it("tokens should be unpaused once crowdsale is finalized (By the owner)", async function() {
     await contribution.sendTransaction({
       from: investor,
       value: web3.toWei(1, "ether")
     });
     await expectThrow(wpr.transfer(investor2, 10, { from: investor }));
 
+    await expectThrow(wpr.unpause());
     await contribution.finalize();
+    await wpr.unpause();
+
+    await expectThrow(wpr.disown({ from: investor2 }));
+
+    await wpr.pause();
+    await wpr.unpause();
+    await wpr.disown();
+
+    await expectThrow(wpr.pause());
 
     await wpr.transfer(investor2, 600 * 10 ** 18, {
       from: investor
