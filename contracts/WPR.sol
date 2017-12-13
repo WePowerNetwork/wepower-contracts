@@ -1,12 +1,12 @@
 pragma solidity ^0.4.15;
 
 import "zeppelin-solidity/contracts/token/MintableToken.sol";
-import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "zeppelin-solidity/contracts/token/PausableToken.sol";
 
 /**
  * @title WePower Contribution Token
  */
-contract WPR is MintableToken, Pausable {
+contract WPR is MintableToken, PausableToken {
   string constant public name = "WePower Token";
   string constant public symbol = "WPR";
   uint constant public decimals = 18;
@@ -35,26 +35,6 @@ contract WPR is MintableToken, Pausable {
   }
 
   event ClaimedTokens(address indexed _token, address indexed _controller, uint _amount);
-
-  function transfer(address _to, uint256 _value) public whenNotPaused returns (bool) {
-    return super.transfer(_to, _value);
-  }
-
-  function transferFrom(address _from, address _to, uint256 _value) public whenNotPaused returns (bool) {
-    return super.transferFrom(_from, _to, _value);
-  }
-
-  function approve(address _spender, uint256 _value) public whenNotPaused returns (bool) {
-    return super.approve(_spender, _value);
-  }
-
-  function increaseApproval(address _spender, uint _addedValue) public whenNotPaused returns (bool success) {
-    return super.increaseApproval(_spender, _addedValue);
-  }
-
-  function decreaseApproval(address _spender, uint _subtractedValue) public whenNotPaused returns (bool success) {
-    return super.decreaseApproval(_spender, _subtractedValue);
-  }
 
   function disown() public onlyOwner {
     OwnershipTransferred(owner, address(0));
