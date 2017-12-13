@@ -47,7 +47,11 @@ contract Exchanger is ExchangerI, Ownable {
   }
 
   function () public {
-    collect(msg.sender);
+    if (contribution.finalizedBlock() == 0) {
+      contribution.proxyPayment(msg.sender);
+    } else {
+      collect(msg.sender);
+    }
   }
 
   /// @notice This method should be called by the WCT holders to collect their
