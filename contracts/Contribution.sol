@@ -160,6 +160,8 @@ contract Contribution is Ownable {
   function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {
     if (totalWeiCollected < bonusCap) {
       uint256 withBonus = bonusCap.sub(totalWeiCollected);
+      LoggyBoy("With Bonus");
+      LoggyBoy(withBonus);
       if (withBonus > toFund) {
         withBonus = toFund;
       }
@@ -204,7 +206,7 @@ contract Contribution is Ownable {
     }
     require(msg.value >= minimumPerTransaction);
     uint256 toFund = msg.value;
-    uint256 toCollect = weiToCollect();
+    uint256 toCollect = weiToCollectByInvestor(_th);
 
     if (toCollect > 0) {
       // Check total supply cap reached, sell the all remaining tokens
@@ -266,6 +268,22 @@ contract Contribution is Ownable {
   /// @return Total eth that still available for collection in weis.
   function weiToCollect() public constant returns(uint256) {
     return totalWeiCap > totalWeiCollected ? totalWeiCap.sub(totalWeiCollected) : 0;
+  }
+
+  /// @return Total eth that still available for collection in weis.
+  function weiToCollectByInvestor(address investor) public constant returns(uint256) {
+    uint256 cap;
+    uint256 collected;
+    // adding 1 day as a placeholder for X hours.
+    // This should change into a variable or coded into the contract.
+    if (getBlockTimestamp() <= startTime + 1 hours) {
+      cap = totalWeiCap.div(numWhitelistedInvestors);
+      collected = individualWeiCollected[investor];
+    } else {
+      cap = totalWeiCap;
+      collected = totalWeiCollected;
+    }
+    return cap > collected ? cap.sub(collected) : 0;
   }
 
   //////////
