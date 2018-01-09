@@ -160,8 +160,6 @@ contract Contribution is Ownable {
   function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {
     if (totalWeiCollected < bonusCap) {
       uint256 withBonus = bonusCap.sub(totalWeiCollected);
-      LoggyBoy("With Bonus");
-      LoggyBoy(withBonus);
       if (withBonus > toFund) {
         withBonus = toFund;
       }
