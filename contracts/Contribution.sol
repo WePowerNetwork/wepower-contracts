@@ -187,13 +187,13 @@ contract Contribution is Ownable {
   /// @param _th WPR holder where the WPRs will be minted.
   function proxyPayment(address _th) public payable notPaused initialized contributionOpen returns (bool) {
     require(_th != 0x0);
-    wpr.unpause();
     if (msg.value == 0) {
+      wpr.unpause();
       ExchangerI(exchanger).collect(_th);
+      wpr.pause();
     } else {
       doBuy(_th);
     }
-    wpr.pause();
     return true;
   }
 
