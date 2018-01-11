@@ -14,6 +14,9 @@ contract Contribution is Ownable {
   address public futureHolder;
   address public exchanger;
 
+  // Wings Integration
+  uint256 public totalCollected;
+
   uint256 public totalWeiCap;             // Total Wei to be collected
   uint256 public totalWeiCollected;       // How much Wei has been collected
   uint256 public weiPreCollected;
@@ -216,6 +219,8 @@ contract Contribution is Ownable {
       require(wpr.mint(_th, tokensGenerated));
 
       contributionWallet.transfer(toFund);
+      // Wings Integration
+      totalCollected = totalCollected.add(toFund);
       individualWeiCollected[_th] = individualWeiCollected[_th].add(toFund);
       totalWeiCollected = totalWeiCollected.add(toFund);
       NewSale(_th, toFund, tokensGenerated);
@@ -284,6 +289,13 @@ contract Contribution is Ownable {
   //////////
   // Safety Methods
   //////////
+
+  // Wings Integration
+  // This function can be used by the contract owner to add ether collected
+  // outside of this contract, such as from a presale
+  function setTotalCollected(uint _totalCollected) public onlyOwner {
+    totalCollected = _totalCollected;
+  }
 
   /// @notice This method can be used by the controller to extract mistakenly
   ///  sent tokens to this contract.
