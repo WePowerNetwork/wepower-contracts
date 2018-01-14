@@ -3,6 +3,8 @@ pragma solidity ^0.4.15;
 import "./ERC20.sol";
 import "./MiniMeToken.sol";
 import "./SafeMath.sol";
+import "./ExchangerI.sol";
+
 
 // 1. WePower deploy a contract which is controlled by WePower multisig.
 // 2. Investor transfer eth or any other currency to WePower multisig or some bank.
@@ -13,11 +15,13 @@ import "./SafeMath.sol";
 
 contract InvestorWallet is Controlled {
   using SafeMath for uint256;
-  ERC20 wct2;
+  ERC20 wpr;
+  ExchangerI exchanger;
   uint256 releaseTime;
 
-  function InvestorWallet(address _wct2, uint256 _monthsToRelease) {
-    wct2 = ERC20(_wct2);
+  function InvestorWallet(address _wpr, address _exchanger, uint256 _monthsToRelease) {
+    wpr = ERC20(_wpr);
+    exchanger = ExchangerI(_exchanger);
     releaseTime = getTime().add(months(_monthsToRelease));
   }
 
@@ -29,8 +33,9 @@ contract InvestorWallet is Controlled {
   function collectTokens() public onlyController {
     require(getTime() > releaseTime);
 
-    uint256 balance = wct2.balanceOf(address(this));
-    require(wct2.transfer(controller, balance));
+    exchanger.collect();
+
+    require(wpr.transfer(controller, wpr.balanceOf(address(this))));
     TokensWithdrawn(controller, balance);
   }
 
