@@ -58,7 +58,7 @@ contract Exchanger is ExchangerI, Ownable {
   ///  corresponding WPRs
   function collect(address caller) public {
     // WCT sholder could collect WPR right after contribution started
-    assert(getBlockTimestamp() > contribution.startTime());
+    require(getBlockTimestamp() > contribution.startTime());
 
     uint256 pre_sale_fixed_at = contribution.initializedBlock();
 
@@ -86,7 +86,7 @@ contract Exchanger is ExchangerI, Ownable {
     totalCollected = totalCollected.add(amount);
     collected[caller] = collected[caller].add(amount);
 
-    assert(wpr.transfer(caller, amount));
+    require(wpr.transfer(caller, amount));
 
     TokensCollected(caller, amount);
   }

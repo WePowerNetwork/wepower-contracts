@@ -40,12 +40,12 @@ contract Contribution is Ownable {
   bool public paused;
 
   modifier initialized() {
-    assert(initializedBlock != 0);
+    require(initializedBlock != 0);
     _;
   }
 
   modifier contributionOpen() {
-    assert(getBlockTimestamp() >= startTime &&
+    require(getBlockTimestamp() >= startTime &&
            getBlockTimestamp() <= endTime &&
            finalizedTime == 0);
     _;
@@ -95,7 +95,7 @@ contract Contribution is Ownable {
     require(_communityHolder != 0x0);
     communityHolder = _communityHolder;
 
-    assert(_startTime >= getBlockTimestamp());
+    require(_startTime >= getBlockTimestamp());
     require(_startTime < _endTime);
     startTime = _startTime;
     endTime = _endTime;
@@ -209,24 +209,22 @@ contract Contribution is Ownable {
     uint256 toFund = msg.value;
     uint256 toCollect = weiToCollect();
 
-    if (toCollect > 0) {
-      // Check total supply cap reached, sell the all remaining tokens
-      if (toFund > toCollect) {
-        toFund = toCollect;
-      }
-      uint256 tokensGenerated = tokensToGenerate(toFund);
-      require(tokensGenerated > 0);
-      require(wpr.mint(_th, tokensGenerated));
+    require(toCollect > 0);
 
-      contributionWallet.transfer(toFund);
-      // Wings Integration
-      totalCollected = totalCollected.add(toFund);
-      individualWeiCollected[_th] = individualWeiCollected[_th].add(toFund);
-      totalWeiCollected = totalWeiCollected.add(toFund);
-      NewSale(_th, toFund, tokensGenerated);
-    } else {
-      toFund = 0;
+    // Check total supply cap reached, sell the all remaining tokens
+    if (toFund > toCollect) {
+      toFund = toCollect;
     }
+    uint256 tokensGenerated = tokensToGenerate(toFund);
+    require(tokensGenerated > 0);
+    require(wpr.mint(_th, tokensGenerated));
+
+    contributionWallet.transfer(toFund);
+    // Wings Integration
+    totalCollected = totalCollected.add(toFund);
+    individualWeiCollected[_th] = individualWeiCollected[_th].add(toFund);
+    totalWeiCollected = totalWeiCollected.add(toFund);
+    NewSale(_th, toFund, tokensGenerated);
 
     uint256 toReturn = msg.value.sub(toFund);
     if (toReturn > 0) {
