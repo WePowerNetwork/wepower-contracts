@@ -4,12 +4,14 @@ import "./InvestorWallet.sol";
 
 contract InvestorWalletFactory {
   function createInvestorWallet(
-      address _wct2,
+      address _wpr,
+      address _exchanger,
       uint256 _monthsToRelease,
       address _investor
   ) returns (InvestorWallet) {
     InvestorWallet newWallet = new InvestorWallet(
-      _wct2,
+      _wpr,
+      _exchanger,
       _monthsToRelease
     );
 

@@ -33,9 +33,10 @@ contract InvestorWallet is Controlled {
   function collectTokens() public onlyController {
     require(getTime() > releaseTime);
 
-    exchanger.collect();
+    exchanger.collect(msg.sender);
 
-    require(wpr.transfer(controller, wpr.balanceOf(address(this))));
+    uint256 balance = wpr.balanceOf(address(this));
+    require(wpr.transfer(controller, balance));
     TokensWithdrawn(controller, balance);
   }
 
@@ -56,8 +57,6 @@ contract InvestorWallet is Controlled {
   /// @param _token The address of the token contract that you want to recover
   ///  set to 0 in case you want to extract ether.
   function claimTokens(address _token) public onlyController {
-    require(_token != address(wct2));
-
     if (_token == 0x0) {
       controller.transfer(this.balance);
       return;
