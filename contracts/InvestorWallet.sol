@@ -4,6 +4,7 @@ import "./ERC20.sol";
 import "./MiniMeToken.sol";
 import "./SafeMath.sol";
 import "./ExchangerI.sol";
+import "./InvestorWalletFactoryI.sol";
 
 
 // 1. WePower deploy a contract which is controlled by WePower multisig.
@@ -16,12 +17,11 @@ import "./ExchangerI.sol";
 contract InvestorWallet is Controlled {
   using SafeMath for uint256;
   ERC20 wpr;
-  ExchangerI exchanger;
   uint256 releaseTime;
 
-  function InvestorWallet(address _wpr, address _exchanger, uint256 _monthsToRelease) {
+  function InvestorWallet(address _wpr, address _factory, uint256 _monthsToRelease) {
     wpr = ERC20(_wpr);
-    exchanger = ExchangerI(_exchanger);
+    factory = InvestorWalletFactoryI(_factory);
     releaseTime = getTime().add(months(_monthsToRelease));
   }
 
@@ -32,7 +32,9 @@ contract InvestorWallet is Controlled {
   /// @notice The Dev (Owner) will call this method to extract the tokens
   function collectTokens() public onlyController {
     require(getTime() > releaseTime);
+    ExchangerI exchanger = ExchangerI(factory.exchanger());
 
+    require(address(exchanger) != 0x0);
     exchanger.collect();
 
     require(wpr.transfer(controller, wpr.balanceOf(address(this))));
