@@ -179,8 +179,11 @@ contract("Contribution", ([miner, owner, investor]) => {
 
     it("Admin can set the totalCollected amount for wings integration", async function() {
       assert.equal((await contribution.totalCollected.call()).toNumber(), 0);
-      await contribution.setTotalCollected(web3.toWei(1, 'ether'));
-      assert.equal((await contribution.totalCollected.call()).toNumber(), web3.toWei(1, 'ether'));
+      await contribution.setTotalCollected(web3.toWei(1, "ether"));
+      assert.equal(
+        (await contribution.totalCollected.call()).toNumber(),
+        web3.toWei(1, "ether")
+      );
     });
 
     it("Wings integration keeps track of ether collected", async function() {
@@ -208,7 +211,10 @@ contract("Contribution", ([miner, owner, investor]) => {
 
       let minerBalance = await wpr.balanceOf(miner);
       assert.equal(minerBalance.toNumber(), 1150 * 10 ** 18);
-      assert.equal((await contribution.totalCollected.call()).toNumber(), web3.toWei(1, 'ether'));
+      assert.equal(
+        (await contribution.totalCollected.call()).toNumber(),
+        web3.toWei(1, "ether")
+      );
     });
   });
 });

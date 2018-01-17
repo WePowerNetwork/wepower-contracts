@@ -72,14 +72,24 @@ contract("InvestorWallet", ([wePower, investor]) => {
       _communityHolder = "0x0039F22efB07A647557C7C5d17854CFD6D489eF3";
       totalCap = new BigNumber(5 * 10 ** 18); // 5 eth
       bonusCap = totalCap.div(10);
-      currentTime = getTime();
-      latestBlockNumber = await latestBlock();
 
-      await contribution.setBlockTimestamp(currentTime);
-      await contribution.setBlockNumber(latestBlockNumber);
       await wpr.transferOwnership(contribution.address);
       await walletFactory.setExchanger(exchanger.address);
 
+      investorWallet = await InvestorWallet.new(
+        wct2.address,
+        walletFactory.address,
+        5
+      );
+      await investorWallet.transferOwnership(investor);
+      await walletFactory.retrieveWCT2();
+      await wct2.generateTokens(investorWallet.address, 1000);
+      await wct2.changeController(walletFactory.address);
+
+      currentTime = getTime();
+      latestBlockNumber = await latestBlock();
+      await contribution.setBlockTimestamp(currentTime);
+      await contribution.setBlockNumber(latestBlockNumber);
       await contribution.initialize(
         wct.address,
         wct1.address,
@@ -98,6 +108,8 @@ contract("InvestorWallet", ([wePower, investor]) => {
       latestBlockNumber = await latestBlock();
       await contribution.setBlockTimestamp(currentTime + 2);
       await contribution.setBlockNumber(latestBlockNumber + 1);
+      await contribution.finalize();
+      await wpr.unpause();
     });
 
     it("factory mints and initiates wallet correctly", async function() {
@@ -119,49 +131,43 @@ contract("InvestorWallet", ([wePower, investor]) => {
     });
 
     it("let's the investor take the tokens after the period", async function() {
-      investorWallet = await InvestorWallet.new(
-        wct2.address,
-        walletFactory.address,
-        5
-      );
-      await investorWallet.transferOwnership(investor);
-      await walletFactory.retrieveWCT2();
-      wct2.generateTokens(investorWallet.address, 1000);
-      wct2.changeController(walletFactory.address);
-      currentTime = await getTime();
       await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
       await exchanger.setBlockTimestamp(currentTime + duration.months(4));
-      // await expectThrow(async () => {
-      //   await investorWallet.collectTokens({ from: investor });
-      // });
+      await expectThrow(async () => {
+        await investorWallet.collectTokens({ from: investor });
+      });
       await investorWallet.setBlockTimestamp(
         currentTime + duration.months(5) + duration.days(1)
       );
       await exchanger.setBlockTimestamp(
         currentTime + duration.months(5) + duration.days(1)
       );
-      // await expectThrow(async () => {
-      //   await investorWallet.collectTokens({ from: wePower });
-      // });
+      await expectThrow(async () => {
+        await investorWallet.collectTokens({ from: wePower });
+      });
       await investorWallet.collectTokens({ from: investor });
-      investorBalance = await wct2.balanceOf(investor);
-      assert.equal(investorBalance.toNumber(), 5 * 10 ** 18);
+      let investorBalance = await wpr.balanceOf(investor);
+      assert.equal(investorBalance.toNumber(), 1250000);
     });
 
     it("let's the investor take the tokens using an empty transaction", async function() {
-      let investorWallet = await InvestorWallet.new(wct2.address, 5, {
-        from: investor
+      await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
+      await exchanger.setBlockTimestamp(currentTime + duration.months(4));
+      await expectThrow(async () => {
+        await investorWallet.sendTransaction({ from: investor });
       });
-      currentTime = await getTime();
-      await wct2.generateTokens(investorWallet.address, 5 * 10 ** 18);
-      let investorBalance = await wct2.balanceOf(investor);
-      assert.equal(investorBalance.toNumber(), 0);
       await investorWallet.setBlockTimestamp(
         currentTime + duration.months(5) + duration.days(1)
       );
+      await exchanger.setBlockTimestamp(
+        currentTime + duration.months(5) + duration.days(1)
+      );
+      await expectThrow(async () => {
+        await investorWallet.sendTransaction({ from: wePower });
+      });
       await investorWallet.sendTransaction({ from: investor });
-      investorBalance = await wct2.balanceOf(investor);
-      assert.equal(investorBalance.toNumber(), 5 * 10 ** 18);
+      let investorBalance = await wpr.balanceOf(investor);
+      assert.equal(investorBalance.toNumber(), 1250000);
     });
   });
 });
