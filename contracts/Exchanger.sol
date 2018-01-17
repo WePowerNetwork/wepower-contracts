@@ -35,14 +35,13 @@ contract Exchanger is ExchangerI, Ownable {
   MiniMeToken public wct;
   MiniMeToken public wct1;
   MiniMeToken public wct2;
-  ERC20 public wpr;
   Contribution public contribution;
 
   function Exchanger(address _wct, address _wct1, address _wct2, address _wpr, address _contribution) {
     wct = MiniMeToken(_wct);
     wct1 = MiniMeToken(_wct1);
     wct2 = MiniMeToken(_wct2);
-    wpr = ERC20(_wpr);
+    wpr = ERC20Basic(_wpr);
     contribution = Contribution(_contribution);
   }
 

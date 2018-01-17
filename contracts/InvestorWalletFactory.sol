@@ -2,36 +2,36 @@ pragma solidity ^0.4.15;
 
 import "./InvestorWallet.sol";
 import "./InvestorWalletFactoryI.sol";
+import "./MiniMeToken.sol";
 
-contract InvestorWalletFactory is InvestorWalletFactoryI, Controlled {
-  MiniMeToken wct2;
+contract InvestorWalletFactory is InvestorWalletFactoryI, Ownable {
+  MiniMeToken public wct2;
 
-  function InvestorWalletFactory(address _wct) {
-    wct2 = MiniMeToken(_wct);
+  function InvestorWalletFactory(address _wct2) public {
+    wct2 = MiniMeToken(_wct2);
   }
 
   function createInvestorWallet(
-      address _wpr,
       uint256 _monthsToRelease,
       address _investor,
       uint256 _amount
-  ) onlyController returns (InvestorWallet) {
+  ) onlyOwner returns (InvestorWallet) {
     InvestorWallet newWallet = new InvestorWallet(
-      _wpr,
+      address(wct2),
       address(this),
       _monthsToRelease
     );
 
-    newWallet.changeController(_investor);
+    newWallet.transferOwnership(_investor);
     wct2.generateTokens(newWallet, _amount);
     return newWallet;
   }
 
-  function setExchanger(address _exchanger) public onlyController {
+  function setExchanger(address _exchanger) public onlyOwner {
     exchanger = _exchanger;
   }
 
-  function retrieveWCT2() public onlyController {
+  function retrieveWCT2() public onlyOwner {
     wct2.changeController(msg.sender);
   }
 }
