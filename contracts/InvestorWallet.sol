@@ -17,6 +17,7 @@ import "./InvestorWalletFactoryI.sol";
 contract InvestorWallet is Controlled {
   using SafeMath for uint256;
   ERC20 wpr;
+  InvestorWalletFactoryI factory;
   uint256 releaseTime;
 
   function InvestorWallet(address _wpr, address _factory, uint256 _monthsToRelease) {
