@@ -100,9 +100,8 @@ contract("InvestorWallet", ([wePower, investor]) => {
       await contribution.setBlockNumber(latestBlockNumber + 1);
     });
 
-    it("let's the investor take the tokens after the period", async function() {
+    it("factory mints and initiates wallet correctly", async function() {
       let transaction = await walletFactory.createInvestorWallet(
-        wpr.address,
         5,
         investor,
         1000
@@ -110,19 +109,40 @@ contract("InvestorWallet", ([wePower, investor]) => {
 
       investorWallet = InvestorWallet.at(transaction.receipt.logs[0].address);
 
+      let investorBalance = await wct2.balanceOf(investorWallet.address);
+      assert.equal(investorBalance.toNumber(), 1000);
       currentTime = await getTime();
-      let investorBalance = await wct2.balanceOf(investor);
-      assert.equal(investorBalance.toNumber(), 0);
+      assert.equal(
+        (await investorWallet.releaseTime()).toNumber(),
+        currentTime + duration.months(5)
+      );
+    });
+
+    it("let's the investor take the tokens after the period", async function() {
+      investorWallet = await InvestorWallet.new(
+        wct2.address,
+        walletFactory.address,
+        5
+      );
+      await investorWallet.transferOwnership(investor);
+      await walletFactory.retrieveWCT2();
+      wct2.generateTokens(investorWallet.address, 1000);
+      wct2.changeController(walletFactory.address);
+      currentTime = await getTime();
       await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
       await exchanger.setBlockTimestamp(currentTime + duration.months(4));
-      await expectThrow(async () => { await investorWallet.collectTokens({ from: investor }) });
+      // await expectThrow(async () => {
+      //   await investorWallet.collectTokens({ from: investor });
+      // });
       await investorWallet.setBlockTimestamp(
         currentTime + duration.months(5) + duration.days(1)
       );
       await exchanger.setBlockTimestamp(
         currentTime + duration.months(5) + duration.days(1)
       );
-      await expectThrow(async () => { await investorWallet.collectTokens({ from: wePower }) });
+      // await expectThrow(async () => {
+      //   await investorWallet.collectTokens({ from: wePower });
+      // });
       await investorWallet.collectTokens({ from: investor });
       investorBalance = await wct2.balanceOf(investor);
       assert.equal(investorBalance.toNumber(), 5 * 10 ** 18);

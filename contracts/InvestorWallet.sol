@@ -18,7 +18,7 @@ contract InvestorWallet is Ownable {
   using SafeMath for uint256;
   address internal wct2;
   InvestorWalletFactoryI internal factory;
-  uint256 internal releaseTime;
+  uint256 public releaseTime;
 
   function InvestorWallet(address _wct2, address _factory, uint256 _monthsToRelease) {
     wct2 = _wct2;
