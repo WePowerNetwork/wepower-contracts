@@ -19,7 +19,6 @@ contract("Contribution", ([miner, owner, investor]) => {
   let wct1;
   let wct2;
   let tokensPreSold = new BigNumber(10 ** 18 * 50);
-  let bonusCap;
   let totalCap;
   let sendingAmount;
   let currentTime;
@@ -58,7 +57,6 @@ contract("Contribution", ([miner, owner, investor]) => {
       );
 
       totalCap = new BigNumber(1000 * 10 ** 18); //1000 eth
-      bonusCap = totalCap.div(10);
       sendingAmount = new BigNumber(10 ** 18); // 1 eth
       currentTime = getTime();
       futureHolder = await FutureTokenHolder.new(
@@ -89,7 +87,6 @@ contract("Contribution", ([miner, owner, investor]) => {
         futureHolder.address,
         teamHolder.address,
         _communityHolder,
-        bonusCap,
         totalCap,
         currentTime + 1,
         currentTime + 10
@@ -163,7 +160,7 @@ contract("Contribution", ([miner, owner, investor]) => {
       });
 
       let minerBalance = await wpr.balanceOf(miner);
-      assert.equal(minerBalance.toNumber(), 1150 * 10 ** 18);
+      assert.equal(minerBalance.toNumber(), 1000 * 10 ** 18);
 
       await contribution.sendTransaction({
         from: miner,
@@ -173,7 +170,7 @@ contract("Contribution", ([miner, owner, investor]) => {
       minerBalance = await wpr.balanceOf(miner);
       assert.equal(
         minerBalance.toNumber(),
-        new BigNumber(1150 * 100 * 10 ** 18).add(1000 * 10 ** 18).toNumber() // 100 eth with bonus 1 eth without bonus
+        new BigNumber(1000 * 100 * 10 ** 18).add(1000 * 10 ** 18).toNumber() // 100 eth with bonus 1 eth without bonus
       );
     });
 
@@ -210,7 +207,7 @@ contract("Contribution", ([miner, owner, investor]) => {
       });
 
       let minerBalance = await wpr.balanceOf(miner);
-      assert.equal(minerBalance.toNumber(), 1150 * 10 ** 18);
+      assert.equal(minerBalance.toNumber(), 1000 * 10 ** 18);
       assert.equal(
         (await contribution.totalCollected.call()).toNumber(),
         web3.toWei(1, "ether")
