@@ -274,7 +274,7 @@ contract Contribution is Ownable {
     uint256 collected;
     // adding 1 day as a placeholder for X hours.
     // This should change into a variable or coded into the contract.
-    if (getBlockTimestamp() <= startTime + 1 hours) {
+    if (getBlockTimestamp() <= startTime + 5 hours) {
       cap = totalWeiCap.div(numWhitelistedInvestors);
       collected = individualWeiCollected[investor];
     } else {
