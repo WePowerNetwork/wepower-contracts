@@ -25,7 +25,6 @@ contract(
     let wprInExchanger = tokensPreSold.mul(1250);
     let multiSig = owner;
     let totalCap;
-    let bonusCap;
     let collectorWeiCap;
     let currentTime;
     let futureHolder;
@@ -66,7 +65,6 @@ contract(
         _communityHolder = "0x0039F22efB07A647557C7C5d17854CFD6D489eF3";
 
         totalCap = new BigNumber(5 * 10 ** 18); // 5 eth
-        bonusCap = totalCap.div(10);
         currentTime = getTime();
 
         latestBlockNumber = await latestBlock();
@@ -84,7 +82,6 @@ contract(
           futureHolder.address,
           teamHolder.address,
           _communityHolder,
-          bonusCap,
           totalCap,
           currentTime + 1,
           currentTime + 10
