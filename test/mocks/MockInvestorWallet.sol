@@ -7,8 +7,9 @@ contract MockInvestorWallet is InvestorWallet {
 
   function MockInvestorWallet(
       address _wct2,
+      address _factory,
       uint256 _monthsToRelease
-  ) InvestorWallet(_wct2, _monthsToRelease) {
+  ) InvestorWallet(_wct2, _factory, _monthsToRelease) {
     timeStamp = now;
   }
 

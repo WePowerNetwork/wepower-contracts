@@ -176,5 +176,45 @@ contract("Contribution", ([miner, owner, investor]) => {
         new BigNumber(1150 * 100 * 10 ** 18).add(1000 * 10 ** 18).toNumber() // 100 eth with bonus 1 eth without bonus
       );
     });
+
+    it("Admin can set the totalCollected amount for wings integration", async function() {
+      assert.equal((await contribution.totalCollected.call()).toNumber(), 0);
+      await contribution.setTotalCollected(web3.toWei(1, "ether"));
+      assert.equal(
+        (await contribution.totalCollected.call()).toNumber(),
+        web3.toWei(1, "ether")
+      );
+    });
+
+    it("Wings integration keeps track of ether collected", async function() {
+      const wctSupplyAt = await wct.totalSupplyAt(latestBlockNumber);
+      const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
+      const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
+      const wprInExchanger = wctSupplyAt
+        .add(wct1SupplyAt)
+        .add(wct2SupplyAt)
+        .mul(1250);
+      const exchangerBalance = await wpr.balanceOf(exchanger.address);
+      assert.equal(exchangerBalance.toNumber(), wprInExchanger.toNumber());
+      let ownerBalance = await wpr.balanceOf(owner);
+      assert.equal(ownerBalance.toNumber(), 0);
+      await contribution.setBlockTimestamp(currentTime + 2);
+      await exchanger.setBlockTimestamp(currentTime + 2);
+      await contribution.sendTransaction({ from: owner });
+      ownerBalance = await wpr.balanceOf(owner);
+      assert.equal(ownerBalance.toNumber(), wprInExchanger.toNumber());
+
+      await contribution.sendTransaction({
+        from: miner,
+        value: new BigNumber(10 ** 18)
+      });
+
+      let minerBalance = await wpr.balanceOf(miner);
+      assert.equal(minerBalance.toNumber(), 1150 * 10 ** 18);
+      assert.equal(
+        (await contribution.totalCollected.call()).toNumber(),
+        web3.toWei(1, "ether")
+      );
+    });
   });
 });

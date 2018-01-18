@@ -1,8 +1,11 @@
 pragma solidity ^0.4.15;
 
-import "./ERC20.sol";
-import "./MiniMeToken.sol";
 import "./SafeMath.sol";
+import "./ExchangerI.sol";
+import "./InvestorWalletFactoryI.sol";
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "zeppelin-solidity/contracts/token/ERC20Basic.sol";
+
 
 // 1. WePower deploy a contract which is controlled by WePower multisig.
 // 2. Investor transfer eth or any other currency to WePower multisig or some bank.
@@ -11,27 +14,33 @@ import "./SafeMath.sol";
 // 5. WePower transfers ownership to Investor multisig.
 // 6. Investor can only claim tokens after X months defined on the contract deployment.
 
-contract InvestorWallet is Controlled {
+contract InvestorWallet is Ownable {
   using SafeMath for uint256;
-  ERC20 wct2;
-  uint256 releaseTime;
+  address internal wct2;
+  InvestorWalletFactoryI internal factory;
+  uint256 public releaseTime;
 
-  function InvestorWallet(address _wct2, uint256 _monthsToRelease) {
-    wct2 = ERC20(_wct2);
+  function InvestorWallet(address _wct2, address _factory, uint256 _monthsToRelease) {
+    wct2 = _wct2;
+    factory = InvestorWalletFactoryI(_factory);
     releaseTime = getTime().add(months(_monthsToRelease));
   }
 
-  function () public onlyController {
+  function () public onlyOwner {
     collectTokens();
   }
 
   /// @notice The Dev (Owner) will call this method to extract the tokens
-  function collectTokens() public onlyController {
+  function collectTokens() public onlyOwner {
     require(getTime() > releaseTime);
+    ExchangerI exchanger = ExchangerI(factory.exchanger());
 
-    uint256 balance = wct2.balanceOf(address(this));
-    require(wct2.transfer(controller, balance));
-    TokensWithdrawn(controller, balance);
+    require(address(exchanger) != 0x0);
+    exchanger.collect(address(this));
+    ERC20Basic wpr = ERC20Basic(exchanger.wpr());
+    uint256 balance = wpr.balanceOf(address(this));
+    require(wpr.transfer(owner, balance));
+    TokensWithdrawn(owner, balance);
   }
 
   function getTime() internal returns (uint256) {
@@ -46,24 +55,24 @@ contract InvestorWallet is Controlled {
   // Safety Methods
   //////////
 
-  /// @notice This method can be used by the controller to extract mistakenly
+  /// @notice This method can be used by the owner to extract mistakenly
   ///  sent tokens to this contract.
   /// @param _token The address of the token contract that you want to recover
   ///  set to 0 in case you want to extract ether.
-  function claimTokens(address _token) public onlyController {
+  function claimTokens(address _token) public onlyOwner {
     require(_token != address(wct2));
 
     if (_token == 0x0) {
-      controller.transfer(this.balance);
+      owner.transfer(this.balance);
       return;
     }
 
-    ERC20 token = ERC20(_token);
+    ERC20Basic token = ERC20Basic(_token);
     uint256 balance = token.balanceOf(this);
-    token.transfer(controller, balance);
-    ClaimedTokens(_token, controller, balance);
+    token.transfer(owner, balance);
+    ClaimedTokens(_token, owner, balance);
   }
 
-  event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
+  event ClaimedTokens(address indexed _token, address indexed _owner, uint256 _amount);
   event TokensWithdrawn(address indexed _holder, uint256 _amount);
 }

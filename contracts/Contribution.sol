@@ -14,6 +14,9 @@ contract Contribution is Ownable {
   address public futureHolder;
   address public exchanger;
 
+  // Wings Integration
+  uint256 public totalCollected;
+
   uint256 public totalWeiCap;             // Total Wei to be collected
   uint256 public totalWeiCollected;       // How much Wei has been collected
   uint256 public weiPreCollected;
@@ -37,12 +40,12 @@ contract Contribution is Ownable {
   bool public paused;
 
   modifier initialized() {
-    assert(initializedBlock != 0);
+    require(initializedBlock != 0);
     _;
   }
 
   modifier contributionOpen() {
-    assert(getBlockTimestamp() >= startTime &&
+    require(getBlockTimestamp() >= startTime &&
            getBlockTimestamp() <= endTime &&
            finalizedTime == 0);
     _;
@@ -92,7 +95,7 @@ contract Contribution is Ownable {
     require(_communityHolder != 0x0);
     communityHolder = _communityHolder;
 
-    assert(_startTime >= getBlockTimestamp());
+    require(_startTime >= getBlockTimestamp());
     require(_startTime < _endTime);
     startTime = _startTime;
     endTime = _endTime;
@@ -187,13 +190,13 @@ contract Contribution is Ownable {
   /// @param _th WPR holder where the WPRs will be minted.
   function proxyPayment(address _th) public payable notPaused initialized contributionOpen returns (bool) {
     require(_th != 0x0);
-    wpr.unpause();
     if (msg.value == 0) {
+      wpr.unpause();
       ExchangerI(exchanger).collect(_th);
+      wpr.pause();
     } else {
       doBuy(_th);
     }
-    wpr.pause();
     return true;
   }
 
@@ -206,22 +209,22 @@ contract Contribution is Ownable {
     uint256 toFund = msg.value;
     uint256 toCollect = weiToCollectByInvestor(_th);
 
-    if (toCollect > 0) {
-      // Check total supply cap reached, sell the all remaining tokens
-      if (toFund > toCollect) {
-        toFund = toCollect;
-      }
-      uint256 tokensGenerated = tokensToGenerate(toFund);
-      require(tokensGenerated > 0);
-      require(wpr.mint(_th, tokensGenerated));
+    require(toCollect > 0);
 
-      contributionWallet.transfer(toFund);
-      individualWeiCollected[_th] = individualWeiCollected[_th].add(toFund);
-      totalWeiCollected = totalWeiCollected.add(toFund);
-      NewSale(_th, toFund, tokensGenerated);
-    } else {
-      toFund = 0;
+    // Check total supply cap reached, sell the all remaining tokens
+    if (toFund > toCollect) {
+      toFund = toCollect;
     }
+    uint256 tokensGenerated = tokensToGenerate(toFund);
+    require(tokensGenerated > 0);
+    require(wpr.mint(_th, tokensGenerated));
+
+    contributionWallet.transfer(toFund);
+    // Wings Integration
+    totalCollected = totalCollected.add(toFund);
+    individualWeiCollected[_th] = individualWeiCollected[_th].add(toFund);
+    totalWeiCollected = totalWeiCollected.add(toFund);
+    NewSale(_th, toFund, tokensGenerated);
 
     uint256 toReturn = msg.value.sub(toFund);
     if (toReturn > 0) {
@@ -300,6 +303,13 @@ contract Contribution is Ownable {
   //////////
   // Safety Methods
   //////////
+
+  // Wings Integration
+  // This function can be used by the contract owner to add ether collected
+  // outside of this contract, such as from a presale
+  function setTotalCollected(uint _totalCollected) public onlyOwner {
+    totalCollected = _totalCollected;
+  }
 
   /// @notice This method can be used by the controller to extract mistakenly
   ///  sent tokens to this contract.
