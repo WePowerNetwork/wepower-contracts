@@ -32,13 +32,11 @@ contract Exchanger is ExchangerI, Ownable {
 
   mapping (address => uint256) public collected;
   uint256 public totalCollected;
-  MiniMeToken public wct;
   MiniMeToken public wct1;
   MiniMeToken public wct2;
   Contribution public contribution;
 
-  function Exchanger(address _wct, address _wct1, address _wct2, address _wpr, address _contribution) {
-    wct = MiniMeToken(_wct);
+  function Exchanger(address _wct1, address _wct2, address _wpr, address _contribution) {
     wct1 = MiniMeToken(_wct1);
     wct2 = MiniMeToken(_wct2);
     wpr = ERC20Basic(_wpr);
@@ -53,6 +51,8 @@ contract Exchanger is ExchangerI, Ownable {
     }
   }
 
+  event loggy(uint x);
+
   /// @notice This method should be called by the WCT holders to collect their
   ///  corresponding WPRs
   function collect(address caller) public {
@@ -62,12 +62,10 @@ contract Exchanger is ExchangerI, Ownable {
     uint256 pre_sale_fixed_at = contribution.initializedBlock();
 
     // Get current WPR ballance at contributions initialization-
-    uint256 balance = wct.balanceOfAt(caller, pre_sale_fixed_at);
-    balance = balance.add(wct1.balanceOfAt(caller, pre_sale_fixed_at));
+    uint256 balance = wct1.balanceOfAt(caller, pre_sale_fixed_at);
     balance = balance.add(wct2.balanceOfAt(caller, pre_sale_fixed_at));
 
-    uint totalSupplied = wct.totalSupplyAt(pre_sale_fixed_at);
-    totalSupplied = totalSupplied.add(wct1.totalSupplyAt(pre_sale_fixed_at));
+    uint256 totalSupplied = wct1.totalSupplyAt(pre_sale_fixed_at);
     totalSupplied = totalSupplied.add(wct2.totalSupplyAt(pre_sale_fixed_at));
 
     // total of wpr to be distributed.
@@ -78,6 +76,7 @@ contract Exchanger is ExchangerI, Ownable {
 
     // And then subtract the amount already collected
     amount = amount.sub(collected[caller]);
+    loggy(amount);
 
     // Notify the user that there are no tokens to exchange
     require(amount > 0);

@@ -1,6 +1,5 @@
 const MockContribution = artifacts.require("MockContribution.sol");
 const WPR = artifacts.require("WPR.sol");
-const WCT = artifacts.require("WCT.sol");
 const WCT1 = artifacts.require("WCT1.sol");
 const WCT2 = artifacts.require("WCT2.sol");
 const TeamTokenHolder = artifacts.require("TeamTokenHolder.sol");
@@ -15,7 +14,6 @@ contract("Contribution", ([miner, owner, investor]) => {
   let wpr;
   let contribution;
   let exchanger;
-  let wct;
   let wct1;
   let wct2;
   let tokensPreSold = new BigNumber(10 ** 18 * 50);
@@ -43,14 +41,12 @@ contract("Contribution", ([miner, owner, investor]) => {
   describe("#initialize", async function() {
     beforeEach(async function() {
       const tokenFactory = await MiniMeTokenFactory.new();
-      wct = await WCT.new(tokenFactory.address);
       wct1 = await WCT1.new(tokenFactory.address);
       wct2 = await WCT2.new(tokenFactory.address);
-      await wct.generateTokens(owner, tokensPreSold);
+      await wct1.generateTokens(owner, tokensPreSold);
       wpr = await WPR.new();
       contribution = await MockContribution.new(wpr.address);
       exchanger = await Exchanger.new(
-        wct.address,
         wct1.address,
         wct2.address,
         wpr.address,
@@ -81,7 +77,6 @@ contract("Contribution", ([miner, owner, investor]) => {
 
       await contribution.whitelist(miner);
       await contribution.initialize(
-        wct.address,
         wct1.address,
         wct2.address,
         exchanger.address,
@@ -113,14 +108,12 @@ contract("Contribution", ([miner, owner, investor]) => {
       // check that exchanger received tokens from PreSale APT
 
       const exchangerBalance = await wpr.balanceOf(exchanger.address);
-      const wctSupplyAt = await wct.totalSupplyAt(latestBlockNumber);
       const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
       const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
 
       assert.equal(
         exchangerBalance.toString(10),
-        wctSupplyAt
-          .add(wct1SupplyAt)
+        wct1SupplyAt
           .add(wct2SupplyAt)
           .mul(1250)
           .toString(10)
@@ -140,11 +133,9 @@ contract("Contribution", ([miner, owner, investor]) => {
     });
 
     it("Testing empty transaction to contribution and Purchase", async function() {
-      const wctSupplyAt = await wct.totalSupplyAt(latestBlockNumber);
       const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
       const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
-      const wprInExchanger = wctSupplyAt
-        .add(wct1SupplyAt)
+      const wprInExchanger = wct1SupplyAt
         .add(wct2SupplyAt)
         .mul(1250);
       const exchangerBalance = await wpr.balanceOf(exchanger.address);
@@ -187,11 +178,9 @@ contract("Contribution", ([miner, owner, investor]) => {
     });
 
     it("Wings integration keeps track of ether collected", async function() {
-      const wctSupplyAt = await wct.totalSupplyAt(latestBlockNumber);
       const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
       const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
-      const wprInExchanger = wctSupplyAt
-        .add(wct1SupplyAt)
+      const wprInExchanger = wct1SupplyAt
         .add(wct2SupplyAt)
         .mul(1250);
       const exchangerBalance = await wpr.balanceOf(exchanger.address);
