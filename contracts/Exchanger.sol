@@ -51,8 +51,6 @@ contract Exchanger is ExchangerI, Ownable {
     }
   }
 
-  event loggy(uint x);
-
   /// @notice This method should be called by the WCT holders to collect their
   ///  corresponding WPRs
   function collect(address caller) public {
@@ -77,7 +75,6 @@ contract Exchanger is ExchangerI, Ownable {
 
     // And then subtract the amount already collected
     amount = amount.sub(collected[caller]);
-    loggy(amount);
 
     // Notify the user that there are no tokens to exchange
     require(amount > 0);
