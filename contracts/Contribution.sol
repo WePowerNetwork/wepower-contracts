@@ -20,7 +20,6 @@ contract Contribution is Ownable {
   uint256 public totalWeiCap;             // Total Wei to be collected
   uint256 public totalWeiCollected;       // How much Wei has been collected
   uint256 public weiPreCollected;
-  uint256 public bonusCap;
 
   uint256 public minimumPerTransaction = 0.01 ether;
 
@@ -70,7 +69,6 @@ contract Contribution is Ownable {
       address _futureHolder,
       address _teamHolder,
       address _communityHolder,
-      uint256 _bonusCap,
       uint256 _totalWeiCap,
       uint256 _startTime,
       uint256 _endTime
@@ -122,8 +120,6 @@ contract Contribution is Ownable {
     require(wpr.mint(_exchanger, weiPreCollected.mul(1250)));
     exchanger = _exchanger;
 
-    bonusCap = _bonusCap;
-
     Initialized(initializedBlock);
   }
 
@@ -161,16 +157,6 @@ contract Contribution is Ownable {
   }
 
   function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {
-    if (totalWeiCollected < bonusCap) {
-      uint256 withBonus = bonusCap.sub(totalWeiCollected);
-      if (withBonus > toFund) {
-        withBonus = toFund;
-      }
-      // 15% bonus to each ETH under the generatedTokens
-      generatedTokens = withBonus.mul(exchangeRate()).mul(115).div(100);
-      toFund = toFund.sub(withBonus);
-    }
-
     generatedTokens = generatedTokens.add(toFund.mul(exchangeRate()));
   }
 
@@ -207,7 +193,7 @@ contract Contribution is Ownable {
     }
     require(msg.value >= minimumPerTransaction);
     uint256 toFund = msg.value;
-    uint256 toCollect = weiToCollect();
+    uint256 toCollect = weiToCollectByInvestor(_th);
 
     require(toCollect > 0);
 
@@ -269,6 +255,22 @@ contract Contribution is Ownable {
   /// @return Total eth that still available for collection in weis.
   function weiToCollect() public constant returns(uint256) {
     return totalWeiCap > totalWeiCollected ? totalWeiCap.sub(totalWeiCollected) : 0;
+  }
+
+  /// @return Total eth that still available for collection in weis.
+  function weiToCollectByInvestor(address investor) public constant returns(uint256) {
+    uint256 cap;
+    uint256 collected;
+    // adding 1 day as a placeholder for X hours.
+    // This should change into a variable or coded into the contract.
+    if (getBlockTimestamp() <= startTime + 5 hours) {
+      cap = totalWeiCap.div(numWhitelistedInvestors);
+      collected = individualWeiCollected[investor];
+    } else {
+      cap = totalWeiCap;
+      collected = totalWeiCollected;
+    }
+    return cap > collected ? cap.sub(collected) : 0;
   }
 
   //////////

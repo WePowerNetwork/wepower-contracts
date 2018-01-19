@@ -19,7 +19,6 @@ contract("Vesting", ([miner, owner, investor]) => {
   let wct1;
   let wct2;
   let tokensPreSold = new BigNumber(55 * 10 ** 18);
-  let bonusCap;
   let totalCap;
   let sendingAmount;
   let currentTime;
@@ -70,7 +69,6 @@ contract("Vesting", ([miner, owner, investor]) => {
       );
 
       totalCap = new BigNumber(1000 * 10 ** 18); //1000 eth
-      bonusCap = totalCap.div(10);
       sendingAmount = new BigNumber(10 ** 18); // 1 eth
       currentTime = getTime();
       futureHolder = await FutureTokenHolder.new(
@@ -100,7 +98,6 @@ contract("Vesting", ([miner, owner, investor]) => {
         futureHolder.address,
         teamHolder.address,
         _communityHolder,
-        bonusCap,
         totalCap,
         currentTime + 1,
         currentTime + 10
