@@ -17,7 +17,7 @@ contract FutureTokenHolder is Ownable {
   /// @notice The Dev (Owner) will call this method to extract the tokens
   function collectTokens() public onlyOwner {
     uint256 finalizedTime = contribution.finalizedTime();
-    require(finalizedTime > 0 && getTime() > finalizedTime.add(1 years));
+    require(finalizedTime > 0 && getTime() > finalizedTime.add(4 years));
 
     uint256 balance = wrp.balanceOf(address(this));
     require(wrp.transfer(owner, balance));

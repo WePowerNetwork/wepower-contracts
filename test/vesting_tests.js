@@ -127,7 +127,7 @@ contract("Vesting", ([miner, owner, investor]) => {
       );
     });
 
-    it("Team Holder will only start givin at month 6 with the amount growing until a year has passed", async function() {
+    it("Team Holder will only start givin at month 3 with the amount growing until 3 years has passed", async function() {
       let teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
@@ -136,27 +136,27 @@ contract("Vesting", ([miner, owner, investor]) => {
       teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
-      await teamHolder.setBlockTimestamp(currentTime + duration.months(5));
+      await teamHolder.setBlockTimestamp(currentTime + duration.months(2));
       currentTime = await getTime();
       await expectThrow(teamHolder.collectTokens({ from: owner }));
       teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
-      await teamHolder.setBlockTimestamp(currentTime + duration.months(6));
+      await teamHolder.setBlockTimestamp(currentTime + duration.months(18));
       currentTime = await getTime();
       await expectThrow(teamHolder.collectTokens({ from: owner }));
       teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 20 * 1250 / 2 * 10 ** 18);
 
       await teamHolder.setBlockTimestamp(
-        currentTime + duration.years(1) + duration.days(1)
+        currentTime + duration.years(3) + duration.days(1)
       );
       await teamHolder.collectTokens({ from: owner });
       teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 20 * 1250 * 10 ** 18);
     });
 
-    it("Remainder can only access Tokens after a year", async function() {
+    it("Remainder can only access Tokens after 4 year", async function() {
       let futureHolderBalance = await wpr.balanceOf(owner);
       assert.equal(futureHolderBalance.toNumber(), 0);
 
@@ -172,7 +172,7 @@ contract("Vesting", ([miner, owner, investor]) => {
       assert.equal(futureHolderBalance.toNumber(), 0);
 
       await futureHolder.setBlockTimestamp(
-        currentTime + duration.years(1) + duration.days(1)
+        currentTime + duration.years(4) + duration.days(1)
       );
       await futureHolder.collectTokens({ from: owner });
       futureHolderBalance = await wpr.balanceOf(owner);
