@@ -1,6 +1,5 @@
 const MockContribution = artifacts.require("MockContribution");
 const WPR = artifacts.require("WPR");
-const WCT = artifacts.require("WCT");
 const WCT1 = artifacts.require("WCT1");
 const WCT2 = artifacts.require("WCT2");
 const MiniMeTokenFactory = artifacts.require("MiniMeTokenFactory");
@@ -18,7 +17,6 @@ contract(
     let wpr;
     let contribution;
     let exchanger;
-    let wct;
     let wct1;
     let wct2;
     let tokensPreSold = new BigNumber(50 * 10 ** 18);
@@ -38,14 +36,12 @@ contract(
       });
 
       beforeEach(async function() {
-        wct = await WCT.new(tokenFactory.address);
         wct1 = await WCT1.new(tokenFactory.address);
         wct2 = await WCT2.new(tokenFactory.address);
-        await wct.generateTokens(owner, tokensPreSold);
+        await wct1.generateTokens(owner, tokensPreSold);
         wpr = await WPR.new(tokenFactory.address);
         contribution = await MockContribution.new(wpr.address);
         exchanger = await Exchanger.new(
-          wct.address,
           wct1.address,
           wct2.address,
           wpr.address,
@@ -74,7 +70,6 @@ contract(
         await wpr.transferOwnership(contribution.address);
 
         await contribution.initialize(
-          wct.address,
           wct1.address,
           wct2.address,
           exchanger.address,
