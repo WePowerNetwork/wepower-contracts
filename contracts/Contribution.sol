@@ -19,7 +19,7 @@ contract Contribution is Ownable {
 
   uint256 public totalWeiCap;             // Total Wei to be collected
   uint256 public totalWeiCollected;       // How much Wei has been collected
-  uint256 public weiPreCollected;
+  uint256 public presaleTokensIssued;
 
   uint256 public minimumPerTransaction = 0.01 ether;
 
@@ -105,16 +105,17 @@ contract Contribution is Ownable {
 
     require(_wct1 != 0x0);
     require(_exchanger != 0x0);
-
-    weiPreCollected = weiPreCollected.add(
+    
+    presaleTokensIssued = MiniMeToken(_wct).totalSupplyAt(initializedBlock);
+    presaleTokensIssued = presaleTokensIssued.add(
       MiniMeToken(_wct1).totalSupplyAt(initializedBlock)
     );
-    weiPreCollected = weiPreCollected.add(
+    presaleTokensIssued = presaleTokensIssued.add(
       MiniMeToken(_wct2).totalSupplyAt(initializedBlock)
     );
 
     // Exchange rate from wct to wpr 1250 considering 25% bonus.
-    require(wpr.mint(_exchanger, weiPreCollected.mul(1250)));
+    require(wpr.mint(_exchanger, presaleTokensIssued.mul(1250)));
     exchanger = _exchanger;
 
     Initialized(initializedBlock);
