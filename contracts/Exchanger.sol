@@ -72,6 +72,7 @@ contract Exchanger is ExchangerI, Ownable {
     uint256 total = totalCollected.add(wpr.balanceOf(address(this)));
 
     // First calculate how much correspond to him
+    assert(totalSupplied > 0);
     uint256 amount = total.mul(balance).div(totalSupplied);
 
     // And then subtract the amount already collected
