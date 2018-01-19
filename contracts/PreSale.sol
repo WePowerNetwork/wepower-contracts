@@ -10,7 +10,6 @@ contract PreSale is Controlled, TokenController {
   uint256 constant public exchangeRate = 1; // ETH-WCT exchange rate
   uint256 constant public investor_bonus = 25;
 
-  MiniMeToken public wct;
   address public preSaleWallet;
 
   uint256 public totalSupplyCap;            // Total WCT supply to be generated
@@ -44,9 +43,7 @@ contract PreSale is Controlled, TokenController {
     _;
   }
 
-  function PreSale(address _wct) {
-    require(_wct != 0x0);
-    wct = MiniMeToken(_wct);
+  function PreSale() {
   }
 
   function initialize(
@@ -58,10 +55,6 @@ contract PreSale is Controlled, TokenController {
   ) public onlyController {
     // Initialize only once
     require(initializedBlock == 0);
-
-    assert(wct.totalSupply() == 0);
-    assert(wct.controller() == address(this));
-    assert(wct.decimals() == 18);  // Same amount of decimals as ETH
 
     require(_preSaleWallet != 0x0);
     preSaleWallet = _preSaleWallet;
@@ -112,12 +105,7 @@ contract PreSale is Controlled, TokenController {
     require(msg.value >= minimum_investment);
 
     // Antispam mechanism
-    address caller;
-    if (msg.sender == address(wct)) {
-      caller = _th;
-    } else {
-      caller = msg.sender;
-    }
+    address caller = msg.sender;
     assert(!isContract(caller));
 
     uint256 toFund = msg.value;
@@ -132,7 +120,6 @@ contract PreSale is Controlled, TokenController {
           toFund = leftForSale.div(exchangeRate);
         }
 
-        assert(wct.generateTokens(_th, tokensGenerated));
         totalSold = totalSold.add(tokensGenerated);
 
         preSaleWallet.transfer(toFund);
@@ -169,7 +156,6 @@ contract PreSale is Controlled, TokenController {
     assert(getBlockNumber() >= startBlock);
     assert(msg.sender == controller || getBlockNumber() > endBlock || tokensForSale() == 0);
 
-    wct.changeController(0x0);
     finalizedBlock = getBlockNumber();
 
     Finalized(finalizedBlock);
@@ -203,9 +189,6 @@ contract PreSale is Controlled, TokenController {
   /// @param _token The address of the token contract that you want to recover
   ///  set to 0 in case you want to extract ether.
   function claimTokens(address _token) public onlyController {
-    if (wct.controller() == address(this)) {
-      wct.claimTokens(_token);
-    }
 
     if (_token == 0x0) {
       controller.transfer(this.balance);

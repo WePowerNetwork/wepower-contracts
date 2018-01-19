@@ -1,6 +1,5 @@
 const MockContribution = artifacts.require("MockContribution.sol");
 const WPR = artifacts.require("WPR.sol");
-const WCT = artifacts.require("WCT.sol");
 const WCT1 = artifacts.require("WCT1.sol");
 const WCT2 = artifacts.require("WCT2.sol");
 const TeamTokenHolder = artifacts.require("MockTeamTokenHolder.sol");
@@ -15,7 +14,6 @@ contract("Vesting", ([miner, owner, investor]) => {
   let wpr;
   let contribution;
   let exchanger;
-  let wct;
   let wct1;
   let wct2;
   let tokensPreSold = new BigNumber(55 * 10 ** 18);
@@ -54,14 +52,12 @@ contract("Vesting", ([miner, owner, investor]) => {
   describe("#initialize", async function() {
     beforeEach(async function() {
       const tokenFactory = await MiniMeTokenFactory.new();
-      wct = await WCT.new(tokenFactory.address);
-      await wct.generateTokens(owner, tokensPreSold);
       wct1 = await WCT1.new(tokenFactory.address);
       wct2 = await WCT2.new(tokenFactory.address);
+      await wct1.generateTokens(owner, tokensPreSold);
       wpr = await WPR.new();
       contribution = await MockContribution.new(wpr.address);
       exchanger = await Exchanger.new(
-        wct.address,
         wct1.address,
         "0x0",
         wpr.address,
@@ -90,7 +86,6 @@ contract("Vesting", ([miner, owner, investor]) => {
       await wpr.transferOwnership(contribution.address);
 
       await contribution.initialize(
-        wct.address,
         wct1.address,
         wct2.address,
         exchanger.address,

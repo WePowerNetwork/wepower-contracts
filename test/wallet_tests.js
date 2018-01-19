@@ -2,7 +2,6 @@
 
 const InvestorWallet = artifacts.require("MockInvestorWallet.sol");
 const InvestorWalletFactory = artifacts.require("InvestorWalletFactory.sol");
-const WCT = artifacts.require("WCT.sol");
 const WCT1 = artifacts.require("WCT1.sol");
 const WCT2 = artifacts.require("WCT2.sol");
 const WPR = artifacts.require("WPR.sol");
@@ -18,7 +17,6 @@ import { expectThrow, duration, latestBlock, getTime } from "./utils.js";
 contract("InvestorWallet", ([wePower, investor]) => {
   let investorWallet;
   let investorWalletFactory;
-  let wct;
   let wct1;
   let wct2;
   let tokensPreSold = new BigNumber(50 * 10 ** 18);
@@ -42,14 +40,12 @@ contract("InvestorWallet", ([wePower, investor]) => {
     });
 
     beforeEach(async function() {
-      wct = await WCT.new(tokenFactory.address);
       wct1 = await WCT1.new(tokenFactory.address);
       wct2 = await WCT2.new(tokenFactory.address);
-      await wct.generateTokens(wePower, tokensPreSold);
+      await wct1.generateTokens(wePower, tokensPreSold);
       wpr = await WPR.new(tokenFactory.address);
       contribution = await MockContribution.new(wpr.address);
       exchanger = await Exchanger.new(
-        wct.address,
         wct1.address,
         wct2.address,
         wpr.address,
@@ -89,7 +85,6 @@ contract("InvestorWallet", ([wePower, investor]) => {
       await contribution.setBlockTimestamp(currentTime);
       await contribution.setBlockNumber(latestBlockNumber);
       await contribution.initialize(
-        wct.address,
         wct1.address,
         wct2.address,
         exchanger.address,

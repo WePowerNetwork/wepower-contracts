@@ -61,7 +61,6 @@ contract Contribution is Ownable {
   }
 
   function initialize(
-      address _wct,
       address _wct1,
       address _wct2,
       address _exchanger,
@@ -104,11 +103,9 @@ contract Contribution is Ownable {
     initializedBlock = getBlockNumber();
     initializedTime = getBlockTimestamp();
 
-    require(_wct != 0x0);
     require(_wct1 != 0x0);
     require(_exchanger != 0x0);
 
-    weiPreCollected = MiniMeToken(_wct).totalSupplyAt(initializedBlock);
     weiPreCollected = weiPreCollected.add(
       MiniMeToken(_wct1).totalSupplyAt(initializedBlock)
     );
