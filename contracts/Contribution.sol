@@ -105,11 +105,8 @@ contract Contribution is Ownable {
 
     require(_wct1 != 0x0);
     require(_exchanger != 0x0);
-    
-    presaleTokensIssued = MiniMeToken(_wct).totalSupplyAt(initializedBlock);
-    presaleTokensIssued = presaleTokensIssued.add(
-      MiniMeToken(_wct1).totalSupplyAt(initializedBlock)
-    );
+
+    presaleTokensIssued = MiniMeToken(_wct1).totalSupplyAt(initializedBlock);
     presaleTokensIssued = presaleTokensIssued.add(
       MiniMeToken(_wct2).totalSupplyAt(initializedBlock)
     );
@@ -155,7 +152,7 @@ contract Contribution is Ownable {
   }
 
   function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {
-    generatedTokens = generatedTokens.add(toFund.mul(exchangeRate()));
+    generatedTokens = toFund.mul(exchangeRate());
   }
 
   /// @notice If anybody sends Ether directly to this contract, consider he is
