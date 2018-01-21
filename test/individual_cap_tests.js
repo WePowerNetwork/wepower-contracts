@@ -90,7 +90,7 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
       // Total cap is 10 eth
       let value = web3.toWei(20, 'ether');
       await contribution.proxyPayment(investor, { from: investor, value: value });
-      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(10000), 'ether')).toNumber());
+      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(12500), 'ether')).toNumber());
     });
 
     it("During the first hour, the cap is split between each whitelisted investor, can't purchase additional tokens", async function() {
@@ -100,11 +100,11 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
       // Total cap is 10 eth
       let value = web3.toWei(20, 'ether');
       await contribution.proxyPayment(investor, { from: investor, value: value });
-      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(10000), 'ether')).toNumber());
+      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(12500), 'ether')).toNumber());
       await expectThrow(async () => {
         await contribution.proxyPayment(investor, { from: investor, value: value });
       });
-      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(10000), 'ether')).toNumber());
+      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(12500), 'ether')).toNumber());
     });
 
     it("After the first hour, a whitelisted investor can purchase the remaining tokens", async function() {
@@ -120,7 +120,7 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
       let value = web3.toWei(20, 'ether');
       assert.equal((await wpr.balanceOf(investor)).toNumber(), 0);
       await contribution.proxyPayment(investor, { from: investor, value: value });
-      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(10000), 'ether')).toNumber());
+      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(12500), 'ether')).toNumber());
     });
   });
 });

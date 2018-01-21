@@ -151,7 +151,7 @@ contract("Contribution", ([miner, owner, investor]) => {
       });
 
       let minerBalance = await wpr.balanceOf(miner);
-      assert.equal(minerBalance.toNumber(), 4000 * 10 ** 18);
+      assert.equal(minerBalance.toNumber(), 5000 * 10 ** 18);
 
       await contribution.sendTransaction({
         from: miner,
@@ -161,7 +161,7 @@ contract("Contribution", ([miner, owner, investor]) => {
       minerBalance = await wpr.balanceOf(miner);
       assert.equal(
         minerBalance.toNumber(),
-        new BigNumber(4000 * 100 * 10 ** 18).add(4000 * 10 ** 18).toNumber() // 100 eth with bonus 1 eth without bonus
+        new BigNumber(5000 * 100 * 10 ** 18).add(5000 * 10 ** 18).toNumber() // 100 eth with bonus 1 eth without bonus
       );
     });
 
@@ -196,7 +196,7 @@ contract("Contribution", ([miner, owner, investor]) => {
       });
 
       let minerBalance = await wpr.balanceOf(miner);
-      assert.equal(minerBalance.toNumber(), 4000 * 10 ** 18);
+      assert.equal(minerBalance.toNumber(), 5000 * 10 ** 18);
       assert.equal(
         (await contribution.totalCollected.call()).toNumber(),
         web3.toWei(1, "ether")

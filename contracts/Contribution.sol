@@ -148,7 +148,7 @@ contract Contribution is Ownable {
 
   // ETH-WPR exchange rate
   function exchangeRate() constant public initialized returns (uint256) {
-    return 4000;
+    return 5000;
   }
 
   function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {
