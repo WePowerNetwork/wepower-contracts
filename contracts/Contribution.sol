@@ -19,7 +19,7 @@ contract Contribution is Ownable {
 
   uint256 public totalWeiCap;             // Total Wei to be collected
   uint256 public totalWeiCollected;       // How much Wei has been collected
-  uint256 public weiPreCollected;
+  uint256 public presaleTokensIssued;
 
   uint256 public minimumPerTransaction = 0.01 ether;
 
@@ -61,7 +61,6 @@ contract Contribution is Ownable {
   }
 
   function initialize(
-      address _wct,
       address _wct1,
       address _wct2,
       address _exchanger,
@@ -104,20 +103,19 @@ contract Contribution is Ownable {
     initializedBlock = getBlockNumber();
     initializedTime = getBlockTimestamp();
 
-    require(_wct != 0x0);
     require(_wct1 != 0x0);
     require(_exchanger != 0x0);
-
-    weiPreCollected = MiniMeToken(_wct).totalSupplyAt(initializedBlock);
-    weiPreCollected = weiPreCollected.add(
+    
+    presaleTokensIssued = MiniMeToken(_wct).totalSupplyAt(initializedBlock);
+    presaleTokensIssued = presaleTokensIssued.add(
       MiniMeToken(_wct1).totalSupplyAt(initializedBlock)
     );
-    weiPreCollected = weiPreCollected.add(
+    presaleTokensIssued = presaleTokensIssued.add(
       MiniMeToken(_wct2).totalSupplyAt(initializedBlock)
     );
 
     // Exchange rate from wct to wpr 1250 considering 25% bonus.
-    require(wpr.mint(_exchanger, weiPreCollected.mul(1250)));
+    require(wpr.mint(_exchanger, presaleTokensIssued.mul(1250)));
     exchanger = _exchanger;
 
     Initialized(initializedBlock);
@@ -153,7 +151,7 @@ contract Contribution is Ownable {
 
   // ETH-WPR exchange rate
   function exchangeRate() constant public initialized returns (uint256) {
-    return 1000;
+    return 4000;
   }
 
   function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {

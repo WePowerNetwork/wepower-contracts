@@ -1,6 +1,5 @@
 const MockContribution = artifacts.require("MockContribution.sol");
 const WPR = artifacts.require("WPR.sol");
-const WCT = artifacts.require("WCT.sol");
 const WCT1 = artifacts.require("WCT1.sol");
 const WCT2 = artifacts.require("WCT2.sol");
 const TeamTokenHolder = artifacts.require("MockTeamTokenHolder.sol");
@@ -15,7 +14,6 @@ contract("Vesting", ([miner, owner, investor]) => {
   let wpr;
   let contribution;
   let exchanger;
-  let wct;
   let wct1;
   let wct2;
   let tokensPreSold = new BigNumber(55 * 10 ** 18);
@@ -54,14 +52,12 @@ contract("Vesting", ([miner, owner, investor]) => {
   describe("#initialize", async function() {
     beforeEach(async function() {
       const tokenFactory = await MiniMeTokenFactory.new();
-      wct = await WCT.new(tokenFactory.address);
-      await wct.generateTokens(owner, tokensPreSold);
       wct1 = await WCT1.new(tokenFactory.address);
       wct2 = await WCT2.new(tokenFactory.address);
+      await wct1.generateTokens(owner, tokensPreSold);
       wpr = await WPR.new();
       contribution = await MockContribution.new(wpr.address);
       exchanger = await Exchanger.new(
-        wct.address,
         wct1.address,
         "0x0",
         wpr.address,
@@ -90,7 +86,6 @@ contract("Vesting", ([miner, owner, investor]) => {
       await wpr.transferOwnership(contribution.address);
 
       await contribution.initialize(
-        wct.address,
         wct1.address,
         wct2.address,
         exchanger.address,
@@ -132,7 +127,7 @@ contract("Vesting", ([miner, owner, investor]) => {
       );
     });
 
-    it("Team Holder will only start givin at month 6 with the amount growing until a year has passed", async function() {
+    it("Team Holder will only start givin at month 3 with the amount growing until 3 years has passed", async function() {
       let teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
@@ -141,27 +136,27 @@ contract("Vesting", ([miner, owner, investor]) => {
       teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
-      await teamHolder.setBlockTimestamp(currentTime + duration.months(5));
+      await teamHolder.setBlockTimestamp(currentTime + duration.months(2));
       currentTime = await getTime();
       await expectThrow(teamHolder.collectTokens({ from: owner }));
       teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
-      await teamHolder.setBlockTimestamp(currentTime + duration.months(6));
+      await teamHolder.setBlockTimestamp(currentTime + duration.months(18));
       currentTime = await getTime();
       await expectThrow(teamHolder.collectTokens({ from: owner }));
       teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 20 * 1250 / 2 * 10 ** 18);
 
       await teamHolder.setBlockTimestamp(
-        currentTime + duration.years(1) + duration.days(1)
+        currentTime + duration.years(3) + duration.days(1)
       );
       await teamHolder.collectTokens({ from: owner });
       teamHolderBalance = await wpr.balanceOf(owner);
       assert.equal(teamHolderBalance.toNumber(), 20 * 1250 * 10 ** 18);
     });
 
-    it("Remainder can only access Tokens after a year", async function() {
+    it("Remainder can only access Tokens after 4 year", async function() {
       let futureHolderBalance = await wpr.balanceOf(owner);
       assert.equal(futureHolderBalance.toNumber(), 0);
 
@@ -177,7 +172,7 @@ contract("Vesting", ([miner, owner, investor]) => {
       assert.equal(futureHolderBalance.toNumber(), 0);
 
       await futureHolder.setBlockTimestamp(
-        currentTime + duration.years(1) + duration.days(1)
+        currentTime + duration.years(4) + duration.days(1)
       );
       await futureHolder.collectTokens({ from: owner });
       futureHolderBalance = await wpr.balanceOf(owner);
