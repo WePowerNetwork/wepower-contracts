@@ -104,6 +104,7 @@ contract Contribution is Ownable {
     initializedTime = getBlockTimestamp();
 
     require(_wct1 != 0x0);
+    require(_wct2 != 0x0);
     require(_exchanger != 0x0);
 
     presaleTokensIssued = MiniMeToken(_wct1).totalSupplyAt(initializedBlock);
