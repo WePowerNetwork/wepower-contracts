@@ -104,12 +104,10 @@ contract Contribution is Ownable {
     initializedTime = getBlockTimestamp();
 
     require(_wct1 != 0x0);
+    require(_wct2 != 0x0);
     require(_exchanger != 0x0);
 
-    presaleTokensIssued = MiniMeToken(_wct).totalSupplyAt(initializedBlock);
-    presaleTokensIssued = presaleTokensIssued.add(
-      MiniMeToken(_wct1).totalSupplyAt(initializedBlock)
-    );
+    presaleTokensIssued = MiniMeToken(_wct1).totalSupplyAt(initializedBlock);
     presaleTokensIssued = presaleTokensIssued.add(
       MiniMeToken(_wct2).totalSupplyAt(initializedBlock)
     );
@@ -127,13 +125,6 @@ contract Contribution is Ownable {
     for (uint256 i = 0; i < _investors.length; i++) {
       blacklist(_investors[i]);
     }
-  }
-
-  /// @notice Notifies if an investor is whitelisted for contribution
-  /// @param _investor investor address
-  /// @return status
-  function isWhitelisted(address _investor) public onlyOwner constant returns(bool) {
-    return canPurchase[_investor];
   }
 
   /// @notice interface for founders to whitelist investors
@@ -158,11 +149,11 @@ contract Contribution is Ownable {
 
   // ETH-WPR exchange rate
   function exchangeRate() constant public initialized returns (uint256) {
-    return 4000;
+    return 5000;
   }
 
   function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {
-    generatedTokens = generatedTokens.add(toFund.mul(exchangeRate()));
+    generatedTokens = toFund.mul(exchangeRate());
   }
 
   /// @notice If anybody sends Ether directly to this contract, consider he is

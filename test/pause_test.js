@@ -85,7 +85,7 @@ contract("Pause", ([miner, owner, investor, investor2]) => {
       value: web3.toWei(1, "ether")
     });
     let balance = await wpr.balanceOf(investor);
-    assert.equal(balance.toNumber(), 1000 * 10 ** 18);
+    assert.equal(balance.toNumber(), 5000 * 10 ** 18);
     await expectThrow(wpr.transfer(owner, 10, { from: investor }));
   });
 
@@ -112,7 +112,7 @@ contract("Pause", ([miner, owner, investor, investor2]) => {
       from: investor
     });
     let balance = await wpr.balanceOf(investor);
-    assert.equal(balance.toNumber(), 400 * 10 ** 18);
+    assert.equal(balance.toNumber(), 4400 * 10 ** 18);
     balance = await wpr.balanceOf(investor2);
     assert.equal(balance.toNumber(), 600 * 10 ** 18);
   });

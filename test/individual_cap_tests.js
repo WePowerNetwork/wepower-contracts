@@ -18,9 +18,7 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
   let wct;
   let wct1;
   let wct2;
-  let tokensPreSold = new BigNumber(10 ** 18 * 50);
-  let bonusCap;
-  let _totalBonusTokens;
+  let tokensPreSold = new BigNumber(50 ** 18 * 50);
   let totalCap;
   let sendingAmount;
   let currentTime;
@@ -33,14 +31,12 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
   describe("#initialize", async function() {
     beforeEach(async function() {
       const tokenFactory = await MiniMeTokenFactory.new();
-      wct = await WCT.new(tokenFactory.address);
       wct1 = await WCT1.new(tokenFactory.address);
       wct2 = await WCT2.new(tokenFactory.address);
-      await wct.generateTokens(owner, tokensPreSold);
+      await wct1.generateTokens(owner, tokensPreSold);
       wpr = await WPR.new();
       contribution = await MockContribution.new(wpr.address);
       exchanger = await Exchanger.new(
-        wct.address,
         wct1.address,
         wct2.address,
         wpr.address,
@@ -48,7 +44,6 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
       );
 
       totalCap = web3.toWei(new BigNumber(10), 'ether'); //10 eth
-      bonusCap = web3.toWei(new BigNumber(1), 'ether');
       sendingAmount = new BigNumber(10 ** 18); // 1 eth
       currentTime = getTime();
       futureHolder = await FutureTokenHolder.new(
@@ -75,7 +70,6 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
       await contribution.whitelist(investor3);
       num_investors = 4;
       await contribution.initialize(
-        wct.address,
         wct1.address,
         wct2.address,
         exchanger.address,
@@ -83,7 +77,6 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
         futureHolder.address,
         teamHolder.address,
         _communityHolder,
-        bonusCap,
         totalCap,
         currentTime + 1,
         currentTime + duration.days(1)
@@ -97,7 +90,7 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
       // Total cap is 10 eth
       let value = web3.toWei(20, 'ether');
       await contribution.proxyPayment(investor, { from: investor, value: value });
-      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(2650), 'ether')).toNumber());
+      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(12500), 'ether')).toNumber());
     });
 
     it("During the first hour, the cap is split between each whitelisted investor, can't purchase additional tokens", async function() {
@@ -107,9 +100,11 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
       // Total cap is 10 eth
       let value = web3.toWei(20, 'ether');
       await contribution.proxyPayment(investor, { from: investor, value: value });
-      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(2650), 'ether')).toNumber());
-      await contribution.proxyPayment(investor, { from: investor, value: value });
-      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(2650), 'ether')).toNumber());
+      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(12500), 'ether')).toNumber());
+      await expectThrow(async () => {
+        await contribution.proxyPayment(investor, { from: investor, value: value });
+      });
+      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(12500), 'ether')).toNumber());
     });
 
     it("After the first hour, a whitelisted investor can purchase the remaining tokens", async function() {
@@ -125,7 +120,7 @@ contract("Individual Caps", ([miner, owner, investor, investor2, investor3]) => 
       let value = web3.toWei(20, 'ether');
       assert.equal((await wpr.balanceOf(investor)).toNumber(), 0);
       await contribution.proxyPayment(investor, { from: investor, value: value });
-      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(10150), 'ether')).toNumber());
+      assert.equal((await wpr.balanceOf(investor)).toNumber(), (web3.toWei(new BigNumber(12500), 'ether')).toNumber());
     });
   });
 });
