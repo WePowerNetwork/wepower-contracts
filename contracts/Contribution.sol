@@ -127,6 +127,13 @@ contract Contribution is Ownable {
     }
   }
 
+  /// @notice Notifies if an investor is whitelisted for contribution
+  /// @param _investor investor address
+  /// @return status
+  function isWhitelisted(address _investor) public onlyOwner constant returns(bool) {
+    return canPurchase[_investor];
+  }
+
   /// @notice interface for founders to whitelist investors
   /// @param _investors array of investors
   function whitelistAddresses(address[] _investors) public onlyOwner {
