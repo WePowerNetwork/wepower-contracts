@@ -1,5 +1,5 @@
 {
-  "name": "aigang-contracts",
+  "name": "wepower-contracts",
   "version": "1.0.0",
   "description": "Contribution Sale Tokens",
   "main": "index.js",
@@ -27,7 +27,9 @@
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
+    "babel-register": "^6.26.0",
     "coveralls": "^3.0.0",
     "ethereumjs-testrpc": "^4.1.3",
     "mochawesome": "^2.3.1",
