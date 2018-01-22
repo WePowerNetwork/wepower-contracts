@@ -105,7 +105,7 @@ contract Contribution is Ownable {
 
     require(_wct1 != 0x0);
     require(_exchanger != 0x0);
-    
+
     presaleTokensIssued = MiniMeToken(_wct).totalSupplyAt(initializedBlock);
     presaleTokensIssued = presaleTokensIssued.add(
       MiniMeToken(_wct1).totalSupplyAt(initializedBlock)
@@ -127,6 +127,13 @@ contract Contribution is Ownable {
     for (uint256 i = 0; i < _investors.length; i++) {
       blacklist(_investors[i]);
     }
+  }
+
+  /// @notice Notifies if an investor is whitelisted for contribution
+  /// @param _investor investor address
+  /// @return status
+  function isWhitelisted(address _investor) public onlyOwner constant returns(bool) {
+    return canPurchase[_investor];
   }
 
   /// @notice interface for founders to whitelist investors
