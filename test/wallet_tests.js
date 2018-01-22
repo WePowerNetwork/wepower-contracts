@@ -68,7 +68,6 @@ contract("InvestorWallet", ([wePower, investor]) => {
       totalCap = new BigNumber(5 * 10 ** 18); // 5 eth
 
       await wpr.transferOwnership(contribution.address);
-      await walletFactory.setExchanger(exchanger.address);
 
       investorWallet = await InvestorWallet.new(
         wct2.address,
@@ -123,6 +122,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
     });
 
     it("let's the investor take the tokens after the period", async function() {
+      await walletFactory.setExchanger(exchanger.address);
       await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
       await exchanger.setBlockTimestamp(currentTime + duration.months(4));
       await expectThrow(async () => {
@@ -142,9 +142,20 @@ contract("InvestorWallet", ([wePower, investor]) => {
       assert.equal(investorBalance.toNumber(), 1250000);
     });
 
+    it("Can't collect tokens until the exchanger has been set", async function() {
+      await investorWallet.setBlockTimestamp(currentTime + duration.months(2));
+      await exchanger.setBlockTimestamp(currentTime + duration.months(2));
+      await expectThrow(async () => {
+        await investorWallet.collectTokens({ from: investor });
+      });
+      await walletFactory.setExchanger(exchanger.address);
+      await investorWallet.collectTokens({ from: investor });
+    });
+
     it("let's the investor take the tokens using an empty transaction", async function() {
       await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
       await exchanger.setBlockTimestamp(currentTime + duration.months(4));
+      await walletFactory.setExchanger(exchanger.address);
       await expectThrow(async () => {
         await investorWallet.sendTransaction({ from: investor });
       });

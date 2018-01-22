@@ -14,7 +14,7 @@ const assert = require("chai").assert;
 const BigNumber = web3.BigNumber;
 import { expectThrow, duration, latestBlock, getTime } from "./utils.js";
 
-contract("InvestorWallet", ([wePower, investor]) => {
+contract("Requirements", ([wePower, investor]) => {
   let investorWallet;
   let wct1;
   let wct2;
