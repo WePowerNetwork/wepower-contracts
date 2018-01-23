@@ -112,7 +112,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
 
       investorWallet = InvestorWallet.at(transaction.receipt.logs[0].address);
 
-      let investorBalance = await wct2.balanceOf(investorWallet.address);
+      let investorBalance = await wct2.balanceOf.call(investorWallet.address);
       assert.equal(investorBalance.toNumber(), 1000);
       currentTime = await getTime();
       assert.equal(
@@ -138,7 +138,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
         await investorWallet.collectTokens({ from: wePower });
       });
       await investorWallet.collectTokens({ from: investor });
-      let investorBalance = await wpr.balanceOf(investor);
+      let investorBalance = await wpr.balanceOf.call(investor);
       assert.equal(investorBalance.toNumber(), 1250000);
     });
 
@@ -169,7 +169,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
         await investorWallet.sendTransaction({ from: wePower });
       });
       await investorWallet.sendTransaction({ from: investor });
-      let investorBalance = await wpr.balanceOf(investor);
+      let investorBalance = await wpr.balanceOf.call(investor);
       assert.equal(investorBalance.toNumber(), 1250000);
     });
   });
