@@ -14,9 +14,8 @@ const assert = require("chai").assert;
 const BigNumber = web3.BigNumber;
 import { expectThrow, duration, latestBlock, getTime } from "./utils.js";
 
-contract("InvestorWallet", ([wePower, investor]) => {
+contract("Requirements", ([wePower, investor]) => {
   let investorWallet;
-  let investorWalletFactory;
   let wct1;
   let wct2;
   let tokensPreSold = new BigNumber(50 * 10 ** 18);
@@ -68,6 +67,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
       totalCap = new BigNumber(5 * 10 ** 18); // 5 eth
 
       await wpr.transferOwnership(contribution.address);
+      await walletFactory.setExchanger(exchanger.address);
 
       investorWallet = await InvestorWallet.new(
         wct2.address,
@@ -103,74 +103,13 @@ contract("InvestorWallet", ([wePower, investor]) => {
       await wpr.unpause();
     });
 
-    it("factory mints and initiates wallet correctly", async function() {
-      let transaction = await walletFactory.createInvestorWallet(
-        5,
-        investor,
-        1000
-      );
+    it("Ownership of WCT2 token can be transferred by owner of the WalletFactory", async function() {
+      assert.equal(await wct2.controller(), walletFactory.address, "The owner of WCT2 should be the investor wallet");
 
-      investorWallet = InvestorWallet.at(transaction.receipt.logs[0].address);
+      await walletFactory.retrieveWCT2();
 
-      let investorBalance = await wct2.balanceOf(investorWallet.address);
-      assert.equal(investorBalance.toNumber(), 1000);
-      currentTime = await getTime();
-      assert.equal(
-        (await investorWallet.releaseTime()).toNumber(),
-        currentTime + duration.months(5)
-      );
-    });
+      assert.equal(await wct2.controller.call(), wePower, "The owner of WCT2 should have transferred to the owner");
 
-    it("let's the investor take the tokens after the period", async function() {
-      await walletFactory.setExchanger(exchanger.address);
-      await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
-      await exchanger.setBlockTimestamp(currentTime + duration.months(4));
-      await expectThrow(async () => {
-        await investorWallet.collectTokens({ from: investor });
-      });
-      await investorWallet.setBlockTimestamp(
-        currentTime + duration.months(5) + duration.days(1)
-      );
-      await exchanger.setBlockTimestamp(
-        currentTime + duration.months(5) + duration.days(1)
-      );
-      await expectThrow(async () => {
-        await investorWallet.collectTokens({ from: wePower });
-      });
-      await investorWallet.collectTokens({ from: investor });
-      let investorBalance = await wpr.balanceOf(investor);
-      assert.equal(investorBalance.toNumber(), 1250000);
-    });
-
-    it("Can't collect tokens until the exchanger has been set", async function() {
-      await investorWallet.setBlockTimestamp(currentTime + duration.months(2));
-      await exchanger.setBlockTimestamp(currentTime + duration.months(2));
-      await expectThrow(async () => {
-        await investorWallet.collectTokens({ from: investor });
-      });
-      await walletFactory.setExchanger(exchanger.address);
-      await investorWallet.collectTokens({ from: investor });
-    });
-
-    it("let's the investor take the tokens using an empty transaction", async function() {
-      await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
-      await exchanger.setBlockTimestamp(currentTime + duration.months(4));
-      await walletFactory.setExchanger(exchanger.address);
-      await expectThrow(async () => {
-        await investorWallet.sendTransaction({ from: investor });
-      });
-      await investorWallet.setBlockTimestamp(
-        currentTime + duration.months(5) + duration.days(1)
-      );
-      await exchanger.setBlockTimestamp(
-        currentTime + duration.months(5) + duration.days(1)
-      );
-      await expectThrow(async () => {
-        await investorWallet.sendTransaction({ from: wePower });
-      });
-      await investorWallet.sendTransaction({ from: investor });
-      let investorBalance = await wpr.balanceOf(investor);
-      assert.equal(investorBalance.toNumber(), 1250000);
     });
   });
 });
