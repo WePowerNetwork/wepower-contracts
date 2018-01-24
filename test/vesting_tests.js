@@ -149,7 +149,10 @@ contract("Vesting", ([miner, owner, investor]) => {
       currentTime = await getTime();
       await expectThrow(teamHolder.collectTokens({ from: owner }));
       teamHolderBalance = new BigNumber(await wpr.balanceOf.call(owner));
-      assert.equal(teamHolderBalance.toNumber(), 20 * 1250 / 2 * 10 ** 18);
+      assert.equal(
+        teamHolderBalance.toNumber().toPrecision(7),
+        new BigNumber(20 * 1250 / 2 * 10 ** 18).toNumber().toPrecision(7)
+      );
 
       await teamHolder.setBlockTimestamp(
         currentTime + duration.years(3) + duration.days(1)
