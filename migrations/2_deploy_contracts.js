@@ -14,7 +14,7 @@ console.log(dateStart);
 var dateEnd = dateStart + 10*24*60*60; // lasts 10 days
 var owner = "0x0019810eAceA494E393daf6D2340092b89c97eBB";
 /*/
-module.exports = function(deployer) {
+module.exports = function(deployer, network, [owner]) {
   return deployer.then(function(){
     // deploy SafeMath
    return deployer.deploy(SafeMath);
@@ -44,9 +44,9 @@ module.exports = function(deployer) {
     return deployer.deploy(Exchanger, WCT1.address, WCT2.address, WPR.address, Contribution.address);
   }).then(function(){
     // then TeamTokenHolder
-    return deployer.deploy(TeamTokenHolder, deployer, Contribution.address, WPR.address);
+    return deployer.deploy(TeamTokenHolder, owner, Contribution.address, WPR.address);
   }).then(function(){
     // then FutureTokenHolder
-    return deployer.deploy(FutureTokenHolder, deployer, Contribution.address, WPR.address);
+    return deployer.deploy(FutureTokenHolder, owner, Contribution.address, WPR.address);
   });
 };
