@@ -27,6 +27,7 @@ contract InvestorWallet is Ownable {
   }
 
   function () public onlyOwner {
+    exchangeTokens();
     collectTokens();
   }
 
