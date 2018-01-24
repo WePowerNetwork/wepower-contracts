@@ -193,6 +193,51 @@ contract("InvestorWallet", ([wePower, investor, bad_actor]) => {
       assert.equal(await wpr.balanceOf.call(investor), 1250000);
     });
 
+    it("Can not retrieve tokens using the claimTokens function", async function() {
+      await walletFactory.setExchanger(exchanger.address);
+
+      await investorWallet.exchangeTokens({ from: investor });
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+      assert.equal(await wct2.balanceOf.call(investorWallet.address), 1000);
+
+      // Fails before vesting period is over
+      await expectThrow(async () => {
+        await exchanger.claimTokens(wpr.address, { from: investor });
+      });
+      await expectThrow(async () => {
+        await exchanger.claimTokens(wct2.address, { from: investor });
+      });
+
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+      assert.equal(await wct2.balanceOf.call(investorWallet.address), 1000);
+
+      await investorWallet.setBlockTimestamp(
+        currentTime + duration.months(5) + duration.days(1)
+      );
+
+      // Fails after vesting period is over
+      await expectThrow(async () => {
+        await exchanger.claimTokens(wpr.address, { from: investor });
+      });
+      await expectThrow(async () => {
+        await exchanger.claimTokens(wct2.address, { from: investor });
+      });
+
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+      assert.equal(await wct2.balanceOf.call(investorWallet.address), 1000);
+    });
+
+    it("Calling collect in the exchanger twice does not cause unexpected results", async function() {
+      await walletFactory.setExchanger(exchanger.address);
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 0);
+      await exchanger.collect(investorWallet.address, { from: investor });
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+      await expectThrow(async () => {
+        await exchanger.collect(investorWallet.address, { from: investor });
+      });
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+    });
+
    it("You can not collect tokens before the release date", async function() {
       await walletFactory.setExchanger(exchanger.address);
       assert.equal(await wpr.balanceOf.call(investorWallet.address), 0);
