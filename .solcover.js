@@ -2,6 +2,6 @@ require("babel-register");
 require("babel-polyfill");
 
 module.exports = {
-  copyPackages: ["zeppelin-solidity"],
+  copyPackages: ["zeppelin-solidity"],r
   norpc: true
 };
