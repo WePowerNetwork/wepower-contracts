@@ -131,24 +131,24 @@ contract("Vesting", ([miner, owner, investor]) => {
     });
 
     it("Team Holder will only start givin at month 3 with the amount growing until 3 years has passed", async function() {
-      let teamHolderBalance = new BigNumber(await wpr.balanceOf.call(owner));
+      let teamHolderBalance = await wpr.balanceOf.call(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
       currentTime = await getTime();
       await expectThrow(teamHolder.collectTokens({ from: owner }));
-      teamHolderBalance = new BigNumber(await wpr.balanceOf.call(owner));
+      teamHolderBalance = await wpr.balanceOf.call(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
       await teamHolder.setBlockTimestamp(currentTime + duration.months(2));
       currentTime = await getTime();
       await expectThrow(teamHolder.collectTokens({ from: owner }));
-      teamHolderBalance = new BigNumber(await wpr.balanceOf.call(owner));
+      teamHolderBalance = await wpr.balanceOf.call(owner);
       assert.equal(teamHolderBalance.toNumber(), 0);
 
       await teamHolder.setBlockTimestamp(currentTime + duration.months(18));
       currentTime = await getTime();
       await expectThrow(teamHolder.collectTokens({ from: owner }));
-      teamHolderBalance = new BigNumber(await wpr.balanceOf.call(owner));
+      teamHolderBalance = await wpr.balanceOf.call(owner);
       assert.equal(
         teamHolderBalance.toNumber().toPrecision(7),
         new BigNumber(20 * 1250 / 2 * 10 ** 18).toNumber().toPrecision(7)
@@ -158,7 +158,7 @@ contract("Vesting", ([miner, owner, investor]) => {
         currentTime + duration.years(3) + duration.days(1)
       );
       await teamHolder.collectTokens({ from: owner });
-      teamHolderBalance = new BigNumber(await wpr.balanceOf.call(owner));
+      teamHolderBalance = await wpr.balanceOf.call(owner);
       assert.equal(teamHolderBalance.toNumber(), 20 * 1250 * 10 ** 18);
     });
 
