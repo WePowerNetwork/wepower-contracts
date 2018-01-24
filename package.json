@@ -21,6 +21,7 @@
   "homepage": "https://github.com/WePowerNetwork/wepower-contracts#readme",
   "dependencies": {
     "truffle": "^4.0.1",
+    "truffle-contract": "^3.0.2",
     "zeppelin-solidity": "^1.3.0"
   },
   "devDependencies": {

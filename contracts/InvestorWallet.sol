@@ -30,13 +30,18 @@ contract InvestorWallet is Ownable {
     collectTokens();
   }
 
-  /// @notice The Dev (Owner) will call this method to extract the tokens
-  function collectTokens() public onlyOwner {
-    require(getTime() > releaseTime);
+  function exchangeTokens() public onlyOwner {
     ExchangerI exchanger = ExchangerI(factory.exchanger());
 
     require(address(exchanger) != 0x0);
     exchanger.collect(address(this));
+  }
+
+  /// @notice The Dev (Owner) will call this method to extract the tokens
+  function collectTokens() public onlyOwner {
+    require(getTime() > releaseTime);
+    ExchangerI exchanger = ExchangerI(factory.exchanger());
+    require(address(exchanger) != 0x0);
     ERC20Basic wpr = ERC20Basic(exchanger.wpr());
     uint256 balance = wpr.balanceOf(address(this));
     require(wpr.transfer(owner, balance));
