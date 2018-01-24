@@ -27,16 +27,22 @@ contract InvestorWallet is Ownable {
   }
 
   function () public onlyOwner {
+    exchangeTokens();
     collectTokens();
+  }
+
+  function exchangeTokens() public onlyOwner {
+    ExchangerI exchanger = ExchangerI(factory.exchanger());
+
+    require(address(exchanger) != 0x0);
+    exchanger.collect(address(this));
   }
 
   /// @notice The Dev (Owner) will call this method to extract the tokens
   function collectTokens() public onlyOwner {
     require(getTime() > releaseTime);
     ExchangerI exchanger = ExchangerI(factory.exchanger());
-
     require(address(exchanger) != 0x0);
-    exchanger.collect(address(this));
     ERC20Basic wpr = ERC20Basic(exchanger.wpr());
     uint256 balance = wpr.balanceOf(address(this));
     require(wpr.transfer(owner, balance));
@@ -60,7 +66,10 @@ contract InvestorWallet is Ownable {
   /// @param _token The address of the token contract that you want to recover
   ///  set to 0 in case you want to extract ether.
   function claimTokens(address _token) public onlyOwner {
-    require(_token != address(wct2));
+    ExchangerI exchanger = ExchangerI(factory.exchanger());
+    require(address(exchanger) != 0x0);
+    ERC20Basic wpr = ERC20Basic(exchanger.wpr());
+    require(_token != address(wct2) && _token != address(wpr));
 
     if (_token == 0x0) {
       owner.transfer(this.balance);

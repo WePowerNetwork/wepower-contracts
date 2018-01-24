@@ -14,7 +14,7 @@ const assert = require("chai").assert;
 const BigNumber = web3.BigNumber;
 import { expectThrow, duration, latestBlock, getTime } from "./utils.js";
 
-contract("InvestorWallet", ([wePower, investor]) => {
+contract("InvestorWallet", ([wePower, investor, bad_actor]) => {
   let investorWallet;
   let investorWalletFactory;
   let wct1;
@@ -98,6 +98,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
       currentTime = getTime();
       latestBlockNumber = await latestBlock();
       await contribution.setBlockTimestamp(currentTime + 2);
+      await exchanger.setBlockTimestamp(currentTime + 2);
       await contribution.setBlockNumber(latestBlockNumber + 1);
       await contribution.finalize();
       await wpr.unpause();
@@ -112,7 +113,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
 
       investorWallet = InvestorWallet.at(transaction.receipt.logs[0].address);
 
-      let investorBalance = await wct2.balanceOf(investorWallet.address);
+      let investorBalance = await wct2.balanceOf.call(investorWallet.address);
       assert.equal(investorBalance.toNumber(), 1000);
       currentTime = await getTime();
       assert.equal(
@@ -126,6 +127,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
       await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
       await exchanger.setBlockTimestamp(currentTime + duration.months(4));
       await expectThrow(async () => {
+        await investorWallet.exchangeTokens({ from: investor });
         await investorWallet.collectTokens({ from: investor });
       });
       await investorWallet.setBlockTimestamp(
@@ -135,10 +137,12 @@ contract("InvestorWallet", ([wePower, investor]) => {
         currentTime + duration.months(5) + duration.days(1)
       );
       await expectThrow(async () => {
+        await investorWallet.exchangeTokens({ from: investor });
         await investorWallet.collectTokens({ from: wePower });
       });
+      await investorWallet.exchangeTokens({ from: investor });
       await investorWallet.collectTokens({ from: investor });
-      let investorBalance = await wpr.balanceOf(investor);
+      let investorBalance = await wpr.balanceOf.call(investor);
       assert.equal(investorBalance.toNumber(), 1250000);
     });
 
@@ -146,9 +150,11 @@ contract("InvestorWallet", ([wePower, investor]) => {
       await investorWallet.setBlockTimestamp(currentTime + duration.months(2));
       await exchanger.setBlockTimestamp(currentTime + duration.months(2));
       await expectThrow(async () => {
+        await investorWallet.exchangeTokens({ from: investor });
         await investorWallet.collectTokens({ from: investor });
       });
       await walletFactory.setExchanger(exchanger.address);
+      await investorWallet.exchangeTokens({ from: investor });
       await investorWallet.collectTokens({ from: investor });
     });
 
@@ -169,8 +175,80 @@ contract("InvestorWallet", ([wePower, investor]) => {
         await investorWallet.sendTransaction({ from: wePower });
       });
       await investorWallet.sendTransaction({ from: investor });
-      let investorBalance = await wpr.balanceOf(investor);
+      let investorBalance = await wpr.balanceOf.call(investor);
       assert.equal(investorBalance.toNumber(), 1250000);
+    });
+
+    it("A bad actor can not lock up tokens for an investor wallet", async function() {
+      await walletFactory.setExchanger(exchanger.address);
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 0);
+      await exchanger.collect(investorWallet.address, { from: bad_actor });
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+
+      assert.equal(await wpr.balanceOf.call(investor), 0);
+      await investorWallet.setBlockTimestamp(
+        currentTime + duration.months(5) + duration.days(1)
+      );
+      await investorWallet.collectTokens({ from: investor });
+      assert.equal(await wpr.balanceOf.call(investor), 1250000);
+    });
+
+    it("Can not retrieve tokens using the claimTokens function", async function() {
+      await walletFactory.setExchanger(exchanger.address);
+
+      await investorWallet.exchangeTokens({ from: investor });
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+      assert.equal(await wct2.balanceOf.call(investorWallet.address), 1000);
+
+      // Fails before vesting period is over
+      await expectThrow(async () => {
+        await exchanger.claimTokens(wpr.address, { from: investor });
+      });
+      await expectThrow(async () => {
+        await exchanger.claimTokens(wct2.address, { from: investor });
+      });
+
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+      assert.equal(await wct2.balanceOf.call(investorWallet.address), 1000);
+
+      await investorWallet.setBlockTimestamp(
+        currentTime + duration.months(5) + duration.days(1)
+      );
+
+      // Fails after vesting period is over
+      await expectThrow(async () => {
+        await exchanger.claimTokens(wpr.address, { from: investor });
+      });
+      await expectThrow(async () => {
+        await exchanger.claimTokens(wct2.address, { from: investor });
+      });
+
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+      assert.equal(await wct2.balanceOf.call(investorWallet.address), 1000);
+    });
+
+    it("Calling collect in the exchanger twice does not cause unexpected results", async function() {
+      await walletFactory.setExchanger(exchanger.address);
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 0);
+      await exchanger.collect(investorWallet.address, { from: investor });
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+      await expectThrow(async () => {
+        await exchanger.collect(investorWallet.address, { from: investor });
+      });
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+    });
+
+   it("You can not collect tokens before the release date", async function() {
+      await walletFactory.setExchanger(exchanger.address);
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 0);
+      await exchanger.collect(investorWallet.address, { from: investor });
+      assert.equal(await wpr.balanceOf.call(investorWallet.address), 1250000);
+
+      assert.equal(await wpr.balanceOf.call(investor), 0);
+      await expectThrow(async () => {
+        await investorWallet.collectTokens({ from: investor });
+      });
+      assert.equal(await wpr.balanceOf.call(investor), 0);
     });
   });
 });
