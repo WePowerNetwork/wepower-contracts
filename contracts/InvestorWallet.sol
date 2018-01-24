@@ -66,6 +66,9 @@ contract InvestorWallet is Ownable {
   /// @param _token The address of the token contract that you want to recover
   ///  set to 0 in case you want to extract ether.
   function claimTokens(address _token) public onlyOwner {
+    ExchangerI exchanger = ExchangerI(factory.exchanger());
+    require(address(exchanger) != 0x0);
+    ERC20Basic wpr = ERC20Basic(exchanger.wpr());
     require(_token != address(wct2) && _token != address(wpr));
 
     if (_token == 0x0) {

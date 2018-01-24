@@ -126,6 +126,7 @@ contract("InvestorWallet", ([wePower, investor]) => {
       await investorWallet.setBlockTimestamp(currentTime + duration.months(4));
       await exchanger.setBlockTimestamp(currentTime + duration.months(4));
       await expectThrow(async () => {
+        await investorWallet.exchangeTokens({ from: investor });
         await investorWallet.collectTokens({ from: investor });
       });
       await investorWallet.setBlockTimestamp(
@@ -135,8 +136,10 @@ contract("InvestorWallet", ([wePower, investor]) => {
         currentTime + duration.months(5) + duration.days(1)
       );
       await expectThrow(async () => {
+        await investorWallet.exchangeTokens({ from: investor });
         await investorWallet.collectTokens({ from: wePower });
       });
+      await investorWallet.exchangeTokens({ from: investor });
       await investorWallet.collectTokens({ from: investor });
       let investorBalance = await wpr.balanceOf.call(investor);
       assert.equal(investorBalance.toNumber(), 1250000);
@@ -146,9 +149,11 @@ contract("InvestorWallet", ([wePower, investor]) => {
       await investorWallet.setBlockTimestamp(currentTime + duration.months(2));
       await exchanger.setBlockTimestamp(currentTime + duration.months(2));
       await expectThrow(async () => {
+        await investorWallet.exchangeTokens({ from: investor });
         await investorWallet.collectTokens({ from: investor });
       });
       await walletFactory.setExchanger(exchanger.address);
+      await investorWallet.exchangeTokens({ from: investor });
       await investorWallet.collectTokens({ from: investor });
     });
 
