@@ -27,6 +27,7 @@ contract InvestorWallet is Ownable {
   }
 
   function () public onlyOwner {
+    exchangeTokens();
     collectTokens();
   }
 
@@ -65,7 +66,7 @@ contract InvestorWallet is Ownable {
   /// @param _token The address of the token contract that you want to recover
   ///  set to 0 in case you want to extract ether.
   function claimTokens(address _token) public onlyOwner {
-    require(_token != address(wct2));
+    require(_token != address(wct2) && _token != address(wpr));
 
     if (_token == 0x0) {
       owner.transfer(this.balance);
