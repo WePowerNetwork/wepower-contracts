@@ -104,17 +104,12 @@ contract("Contribution", ([miner, owner, investor]) => {
 
       // check that exchanger received tokens from PreSale APT
 
-      const exchangerBalance = await wpr.balanceOf(exchanger.address);
+      const exchangerBalance = await wpr.balanceOf.call(exchanger.address);
       const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
       const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
+      const wprInExchanger = wct1SupplyAt.add(wct2SupplyAt).mul(1250);
 
-      assert.equal(
-        exchangerBalance.toString(10),
-        wct1SupplyAt
-          .add(wct2SupplyAt)
-          .mul(1250)
-          .toString(10)
-      );
+      assert.equal(exchangerBalance.toString(10), wprInExchanger.toString(10));
 
       assert.equal(contributionWallet, owner);
       assert.equal(totalSupplyCap.toNumber(), totalCap);
@@ -132,17 +127,15 @@ contract("Contribution", ([miner, owner, investor]) => {
     it("Testing empty transaction to contribution and Purchase", async function() {
       const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
       const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
-      const wprInExchanger = wct1SupplyAt
-        .add(wct2SupplyAt)
-        .mul(1250);
-      const exchangerBalance = await wpr.balanceOf(exchanger.address);
+      const wprInExchanger = wct1SupplyAt.add(wct2SupplyAt).mul(1250);
+      const exchangerBalance = await wpr.balanceOf.call(exchanger.address);
       assert.equal(exchangerBalance.toNumber(), wprInExchanger.toNumber());
-      let ownerBalance = await wpr.balanceOf(owner);
+      let ownerBalance = await wpr.balanceOf.call(owner);
       assert.equal(ownerBalance.toNumber(), 0);
       await contribution.setBlockTimestamp(currentTime + 2);
       await exchanger.setBlockTimestamp(currentTime + 2);
       await contribution.sendTransaction({ from: owner });
-      ownerBalance = await wpr.balanceOf(owner);
+      ownerBalance = await wpr.balanceOf.call(owner);
       assert.equal(ownerBalance.toNumber(), wprInExchanger.toNumber());
 
       await contribution.sendTransaction({
@@ -150,7 +143,7 @@ contract("Contribution", ([miner, owner, investor]) => {
         value: new BigNumber(10 ** 18)
       });
 
-      let minerBalance = await wpr.balanceOf(miner);
+      let minerBalance = await wpr.balanceOf.call(miner);
       assert.equal(minerBalance.toNumber(), 5000 * 10 ** 18);
 
       await contribution.sendTransaction({
@@ -158,7 +151,7 @@ contract("Contribution", ([miner, owner, investor]) => {
         value: new BigNumber(100 * 10 ** 18)
       });
 
-      minerBalance = await wpr.balanceOf(miner);
+      minerBalance = await wpr.balanceOf.call(miner);
       assert.equal(
         minerBalance.toNumber(),
         new BigNumber(5000 * 100 * 10 ** 18).add(5000 * 10 ** 18).toNumber() // 100 eth with bonus 1 eth without bonus
@@ -177,17 +170,15 @@ contract("Contribution", ([miner, owner, investor]) => {
     it("Wings integration keeps track of ether collected", async function() {
       const wct1SupplyAt = await wct1.totalSupplyAt(latestBlockNumber);
       const wct2SupplyAt = await wct2.totalSupplyAt(latestBlockNumber);
-      const wprInExchanger = wct1SupplyAt
-        .add(wct2SupplyAt)
-        .mul(1250);
-      const exchangerBalance = await wpr.balanceOf(exchanger.address);
+      const wprInExchanger = wct1SupplyAt.add(wct2SupplyAt).mul(1250);
+      const exchangerBalance = await wpr.balanceOf.call(exchanger.address);
       assert.equal(exchangerBalance.toNumber(), wprInExchanger.toNumber());
-      let ownerBalance = await wpr.balanceOf(owner);
+      let ownerBalance = await wpr.balanceOf.call(owner);
       assert.equal(ownerBalance.toNumber(), 0);
       await contribution.setBlockTimestamp(currentTime + 2);
       await exchanger.setBlockTimestamp(currentTime + 2);
       await contribution.sendTransaction({ from: owner });
-      ownerBalance = await wpr.balanceOf(owner);
+      ownerBalance = await wpr.balanceOf.call(owner);
       assert.equal(ownerBalance.toNumber(), wprInExchanger.toNumber());
 
       await contribution.sendTransaction({
@@ -195,7 +186,7 @@ contract("Contribution", ([miner, owner, investor]) => {
         value: new BigNumber(10 ** 18)
       });
 
-      let minerBalance = await wpr.balanceOf(miner);
+      let minerBalance = await wpr.balanceOf.call(miner);
       assert.equal(minerBalance.toNumber(), 5000 * 10 ** 18);
       assert.equal(
         (await contribution.totalCollected.call()).toNumber(),
