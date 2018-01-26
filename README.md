@@ -2,7 +2,7 @@
 
 WePower Ethereum smart contracts
 
-# Deployment Prodcedure
+# Deployment Procedure
 Kovan Deployed Contracts
 
 Contracts can be deployed in this order.
