@@ -112,8 +112,8 @@ contract Contribution is Ownable {
       MiniMeToken(_wct2).totalSupplyAt(initializedBlock)
     );
 
-    // Exchange rate from wct to wpr 1250 considering 25% bonus.
-    require(wpr.mint(_exchanger, presaleTokensIssued.mul(1250)));
+    // Exchange rate from wct to wpr 10000
+    require(wpr.mint(_exchanger, presaleTokensIssued.mul(10000)));
     exchanger = _exchanger;
 
     Initialized(initializedBlock);
@@ -156,7 +156,7 @@ contract Contribution is Ownable {
 
   // ETH-WPR exchange rate
   function exchangeRate() constant public initialized returns (uint256) {
-    return 5000;
+    return 8000;
   }
 
   function tokensToGenerate(uint256 toFund) internal returns (uint256 generatedTokens) {
@@ -191,9 +191,9 @@ contract Contribution is Ownable {
 
   function doBuy(address _th) internal {
     // whitelisting only during the first day
-    if (getBlockTimestamp() <= startTime + 1 days) {
-      require(canPurchase[_th]);
-    }
+    // if (getBlockTimestamp() <= startTime + 1 days) {
+    require(canPurchase[_th]);
+    // }
     require(msg.value >= minimumPerTransaction);
     uint256 toFund = msg.value;
     uint256 toCollect = weiToCollectByInvestor(_th);
@@ -231,16 +231,22 @@ contract Contribution is Ownable {
     require(getBlockTimestamp() >= startTime);
     require(msg.sender == owner || getBlockTimestamp() > endTime || weiToCollect() == 0);
 
-    // WPR generated so far is 55% of total
-    uint256 tokenCap = wpr.totalSupply().mul(100).div(55);
-    // team Wallet will have 20% of the total Tokens and will be in a 12 months
-    // vesting contract with 6 months cliff.
-    wpr.mint(teamHolder, tokenCap.mul(20).div(100));
-    // community Wallet will have access to 10% of the total Tokens.
-    wpr.mint(communityHolder, tokenCap.mul(10).div(100));
-    // future Wallet will have 15% of the total Tokens and will be able to retrieve
-    // after a year.
-    wpr.mint(futureHolder, tokenCap.mul(15).div(100));
+    uint CROWDSALE_PCT = 62;
+    uint TEAMHOLDER_PCT = 20;
+    uint COMMUNITYHOLDER_PCT = 15;
+    uint FUTUREHOLDER_PCT = 3;
+    assert(CROWDSALE_PCT + TEAMHOLDER_PCT + COMMUNITYHOLDER_PCT + FUTUREHOLDER_PCT == 100);
+
+    // WPR generated so far is 62% of total
+    uint256 tokenCap = wpr.totalSupply().mul(100).div(CROWDSALE_PCT);
+    // team Wallet will have 20% of the total Tokens and will be in a 36 months
+    // vesting contract with 3 months cliff.
+    wpr.mint(teamHolder, tokenCap.mul(TEAMHOLDER_PCT).div(100));
+    // community Wallet will have access to 15% of the total Tokens.
+    wpr.mint(communityHolder, tokenCap.mul(COMMUNITYHOLDER_PCT).div(100));
+    // future Wallet will have 3% of the total Tokens and will be able to retrieve
+    // after a 4 years.
+    wpr.mint(futureHolder, tokenCap.mul(FUTUREHOLDER_PCT).div(100));
 
     require(wpr.finishMinting());
     wpr.transferOwnership(owner);
